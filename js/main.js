@@ -42,6 +42,8 @@ APP.setup = ()=>{
 
 	APP.gRecords = ATON.createUINode("records");
 	APP.gRecords.attachToRoot();
+	
+	ATON.SUI.showSelector(false);
 
 	APP.setupEvents();
 	APP.setupAssets();
