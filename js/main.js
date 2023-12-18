@@ -10,7 +10,7 @@ window.APP = APP;
 
 APP.MKHET_API  = "/mkhet/";
 APP.DIR_ASSETS = APP.basePath + "assets/";
-APP.MARK_SCALE = 0.2;
+APP.MARK_SCALE = 0.5;
 
 // Classes/Components
 APP.Record = Record;
