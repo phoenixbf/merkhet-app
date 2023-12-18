@@ -26,11 +26,11 @@ APP.setup = ()=>{
 	ATON.FE.addBasicLoaderEvents(); // Add basic events handling
 
     ATON.FE.uiAddButtonHome("idBottomToolbar");
+
+	ATON.FE.uiAddButtonVRC("idTopToolbar");
     ATON.FE.uiAddButtonFullScreen("idTopToolbar");
     ATON.FE.uiAddButtonQR("idTopToolbar");
-    //ATON.FE.uiAddButtonVR("idTopToolbar");
-
-	//ATON.FE.uiAddButtonInfo("idBottomRToolbar");
+    ATON.FE.uiAddButtonVR("idTopToolbar");
 
 	let sid = APP.params.get("s");
 
@@ -49,18 +49,29 @@ APP.setup = ()=>{
 
 APP.setupAssets = ()=>{
 	APP.matSpriteMark = new THREE.SpriteMaterial({ 
-        map: new THREE.TextureLoader().load( APP.DIR_ASSETS + "mark.jpg" ),
+        map: new THREE.TextureLoader().load( APP.DIR_ASSETS + "mark.png" ),
         
-		//transparent: true,
-        //opacity: 0.5,
+		transparent: true,
+        opacity: 0.5,
         
 		color: ATON.MatHub.colors.green,
         depthWrite: false, 
         //depthTest: false
-        blending: THREE.AdditiveBlending
+        
+		//blending: THREE.AdditiveBlending
     });
 
 	APP.mark = new THREE.Sprite(APP.matSpriteMark);
+
+	APP.matDirection = new THREE.MeshBasicMaterial({
+        color: ATON.MatHub.colors.green,
+        //linewidth: 5,
+        transparent: true,
+        depthWrite: false,
+        opacity: 0.5, 
+        //depthTest: false
+        //flatShading: true
+    });
 };
 
 APP.setupEvents = ()=>{
@@ -68,8 +79,12 @@ APP.setupEvents = ()=>{
 		let rid = APP.params.get("r");
 		if (!rid) return;
 
-		let R = new APP.Record(rid).loadViaAPI(()=>{
-			//$("#tSlider").attr("max", );
+		let R = new APP.Record(rid);
+		R.loadViaAPI(()=>{
+			console.log(R._tRangeMin+","+R._tRangeMax);
+
+			$("#tSlider").attr("min", R._tRangeMin);
+			$("#tSlider").attr("max", R._tRangeMax);
 		});
 
 		APP._record = R;

@@ -9,6 +9,9 @@ constructor(rid){
 
     this._filterTime = 0.0;
     this._filterTRad = 0.2;
+
+    this._tRangeMin = undefined;
+    this._tRangeMax = undefined;
 }
 
 generateFromCSVdata(data){
@@ -28,18 +31,30 @@ generateFromCSVdata(data){
         let t = parseFloat(values[0]);
 
         if (!isNaN(t)){
+            if (this._tRangeMin===undefined) this._tRangeMin = t;
+
             let px = parseFloat(values[2]);
             let py = parseFloat(values[3]);
             let pz = parseFloat(values[4]);
 
+            let dx = parseFloat(values[5]);
+            let dy = parseFloat(values[6]);
+            let dz = parseFloat(values[7]);
+
+            let K = ATON.createUINode();
+            K.userData.time = t;
 
             let mark = APP.mark.clone();
             mark.position.set(px,py,pz);
             mark.scale.set(APP.MARK_SCALE,APP.MARK_SCALE,APP.MARK_SCALE);
+            K.add(mark);
 
-            mark.userData.time = t;
+            let gline = new THREE.BufferGeometry().setFromPoints([mark.position, new THREE.Vector3(px+dx, py+dy, pz+dz)]);
+            K.add( new THREE.Line( gline , APP.matDirection) );
 
-            this.node.add(mark);
+            this.node.add(K);
+
+            this._tRangeMax = t;
         }
     }
 
