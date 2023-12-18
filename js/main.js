@@ -19,6 +19,8 @@ APP.Record = Record;
 // APP.setup() is required for web-app initialization
 // You can place here UI setup (HTML), events handling, etc.
 APP.setup = ()=>{
+	APP._record = undefined;
+
     ATON.FE.realize(); // Realize the base front-end
 
 	ATON.FE.addBasicLoaderEvents(); // Add basic events handling
@@ -57,6 +59,8 @@ APP.setupAssets = ()=>{
         //depthTest: false
         blending: THREE.AdditiveBlending
     });
+
+	APP.mark = new THREE.Sprite(APP.matSpriteMark);
 };
 
 APP.setupEvents = ()=>{
@@ -64,7 +68,21 @@ APP.setupEvents = ()=>{
 		let rid = APP.params.get("r");
 		if (!rid) return;
 
-		let R = new APP.Record(rid).loadViaAPI();
+		let R = new APP.Record(rid).loadViaAPI(()=>{
+			//$("#tSlider").attr("max", );
+		});
+
+		APP._record = R;
+	});
+
+
+	$("#tSlider").on("input change",()=>{
+		if (!APP._record) return;
+
+		let t = parseFloat( $("#tSlider").val() );
+
+		APP._record._filterTime = t;
+		APP._record.filter();
 	});
 };
 
