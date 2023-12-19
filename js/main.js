@@ -20,6 +20,8 @@ APP.Record = Record;
 // You can place here UI setup (HTML), events handling, etc.
 APP.setup = ()=>{
 	APP._record = undefined;
+	
+	APP._vZero = new THREE.Vector3(0,0,0);
 
     ATON.FE.realize(); // Realize the base front-end
 
@@ -75,10 +77,12 @@ APP.setupAssets = ()=>{
         //flatShading: true
     });
 
-	APP.matSolid = new THREE.MeshBasicMaterial({
+	APP.matFOV = new THREE.MeshBasicMaterial({
         color: ATON.MatHub.colors.green,
-        //depthWrite: false,
-        //opacity: 0.5, 
+
+		transparent: true,
+        depthWrite: false,
+        opacity: 0.1, 
         //depthTest: false
         //flatShading: true
     });

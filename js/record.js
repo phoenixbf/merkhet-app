@@ -8,7 +8,7 @@ constructor(rid){
     this.node = undefined;
 
     this._filterTime = 0.0;
-    this._filterTRad = 0.1;
+    this._filterTRad = 0.2;
 
     this._tRangeMin = undefined;
     this._tRangeMax = undefined;
@@ -33,6 +33,8 @@ generateFromCSVdata(data){
         if (!isNaN(t)){
             if (this._tRangeMin===undefined) this._tRangeMin = t;
 
+            let nav = values[1];
+
             let px = parseFloat(values[2]);
             let py = parseFloat(values[3]);
             let pz = parseFloat(values[4]);
@@ -42,10 +44,13 @@ generateFromCSVdata(data){
             let dz = parseFloat(values[7]);
 
             let K = ATON.createUINode(this.rid+"-m"+m);
+            K.position.set(px,py,pz);
+
             K.userData.time = t;
+            K.userData.nav  = nav;
 
             let mark = APP.mark.clone();
-            mark.position.set(px,py,pz);
+            //mark.position.set(px,py,pz);
             mark.scale.set(APP.MARK_SCALE,APP.MARK_SCALE,APP.MARK_SCALE);
             K.add(mark);
 /*
@@ -53,13 +58,22 @@ generateFromCSVdata(data){
             gs.scale.set(0.3,0.3,0.3);
             mark.add(gs);
 */
-            let gline = new THREE.BufferGeometry().setFromPoints([mark.position, new THREE.Vector3(px+dx, py+dy, pz+dz)]);
+            //let gf = new THREE.Mesh( new THREE.ConeGeometry( 0.1, 2, 10 ).rotateX(Math.PI*0.5), APP.matFOV );
+            //gf.lookAt(px+dx,py+dy,pz+dz);
+
+            //gf.position.x -= dx*2.5;
+            //gf.position.y -= dy*2.5;
+            //gf.position.z -= dz*2.5;
+
+            //K.add(gf);
+
+            let gline = new THREE.BufferGeometry().setFromPoints([APP._vZero, new THREE.Vector3(dx, dy, dz)]);
             K.add( new THREE.Line( gline , APP.matDirection) );
-/*
+
             K.enablePicking().setOnHover(()=>{
                 console.log(m)
             });
-*/
+
             this.node.add(K);
 
             this._tRangeMax = t;
