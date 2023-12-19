@@ -8,7 +8,7 @@ constructor(rid){
     this.node = undefined;
 
     this._filterTime = 0.0;
-    this._filterTRad = 0.2;
+    this._filterTRad = 0.1;
 
     this._tRangeMin = undefined;
     this._tRangeMax = undefined;
@@ -41,17 +41,25 @@ generateFromCSVdata(data){
             let dy = parseFloat(values[6]);
             let dz = parseFloat(values[7]);
 
-            let K = ATON.createUINode();
+            let K = ATON.createUINode(this.rid+"-m"+m);
             K.userData.time = t;
 
             let mark = APP.mark.clone();
             mark.position.set(px,py,pz);
             mark.scale.set(APP.MARK_SCALE,APP.MARK_SCALE,APP.MARK_SCALE);
             K.add(mark);
-
+/*
+            let gs = new THREE.Mesh( ATON.Utils.geomUnitCube, ATON.MatHub.materials.fullyTransparent);
+            gs.scale.set(0.3,0.3,0.3);
+            mark.add(gs);
+*/
             let gline = new THREE.BufferGeometry().setFromPoints([mark.position, new THREE.Vector3(px+dx, py+dy, pz+dz)]);
             K.add( new THREE.Line( gline , APP.matDirection) );
-
+/*
+            K.enablePicking().setOnHover(()=>{
+                console.log(m)
+            });
+*/
             this.node.add(K);
 
             this._tRangeMax = t;
@@ -102,8 +110,8 @@ filter(){
         let M = marks[r];
         let mt = M.userData.time;
 
-        if (mt >= tA && mt <= tB) M.visible = true;
-        else M.visible = false; 
+        if (mt >= tA && mt <= tB) M.show();
+        else M.hide();
     }
 
 }

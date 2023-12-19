@@ -54,7 +54,7 @@ APP.setupAssets = ()=>{
         map: new THREE.TextureLoader().load( APP.DIR_ASSETS + "mark.png" ),
         
 		transparent: true,
-        opacity: 0.5,
+        //opacity: 0.5,
         
 		color: ATON.MatHub.colors.green,
         depthWrite: false, 
@@ -71,6 +71,14 @@ APP.setupAssets = ()=>{
         transparent: true,
         depthWrite: false,
         opacity: 0.5, 
+        //depthTest: false
+        //flatShading: true
+    });
+
+	APP.matSolid = new THREE.MeshBasicMaterial({
+        color: ATON.MatHub.colors.green,
+        //depthWrite: false,
+        //opacity: 0.5, 
         //depthTest: false
         //flatShading: true
     });
@@ -100,6 +108,8 @@ APP.setupEvents = ()=>{
 
 		APP._record._filterTime = t;
 		APP._record.filter();
+
+		$("#tValue").html(t.toFixed(2));
 	});
 };
 
