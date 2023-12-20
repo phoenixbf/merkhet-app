@@ -43,12 +43,19 @@ generateFromCSVdata(data){
             let dy = parseFloat(values[6]);
             let dz = parseFloat(values[7]);
 
+            let fov = parseFloat(values[11]);
+
             let K = ATON.createUINode(this.rid+"-m"+m);
             K.position.set(px,py,pz);
 
+            // UserData
             K.userData.time = t;
             K.userData.nav  = nav;
+            K.userData.pos  = [px,py,pz];
+            K.userData.dir  = [dx,dy,dz];
+            K.userData.fov  = fov;
 
+            // 3D Representation
             let mark = APP.mark.clone();
             //mark.position.set(px,py,pz);
             mark.scale.set(APP.MARK_SCALE,APP.MARK_SCALE,APP.MARK_SCALE);
