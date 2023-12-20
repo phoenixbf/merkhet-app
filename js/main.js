@@ -20,7 +20,7 @@ APP.Record = Record;
 // You can place here UI setup (HTML), events handling, etc.
 APP.setup = ()=>{
 	APP._record = undefined;
-	
+
 	APP._vZero = new THREE.Vector3(0,0,0);
 
     ATON.FE.realize(); // Realize the base front-end
@@ -45,10 +45,16 @@ APP.setup = ()=>{
 	APP.gRecords = ATON.createUINode("records");
 	APP.gRecords.attachToRoot();
 	
+	APP.gProcessed = ATON.createUINode("processed");
+	APP.gProcessed.attachToRoot();
+
 	ATON.SUI.showSelector(false);
 
 	APP.setupEvents();
 	APP.setupAssets();
+
+	let occupData = APP.params.get("o");
+	if (occupData) APP.loadOccupancyData(APP.MKHET_API+"r/"+sid.replace("/","-")+"/"+occupData);
 };
 
 APP.setupAssets = ()=>{
@@ -144,6 +150,44 @@ APP.update = ()=>{
 
 };
 */
+
+APP.loadOccupancyData = (path)=>{
+	$.getJSON( path, ( data )=>{
+        console.log("Loaded occupancy data: "+path);
+
+		let points = data.points;
+		if (!points) return;
+
+		let maxocc = points[0].occupancy;
+
+		for (let p=0; p<points.length; p++){
+			let P = points[p];
+			let px = P.x;
+			let py = P.y;
+			let pz = P.z;
+			let o  = P.occupancy;
+
+			let K = ATON.createUINode("o"+o);
+			K.position.set(px,py,pz);
+
+			let mat = new THREE.MeshBasicMaterial({
+				color: ATON.MatHub.colors.blue,
+				transparent: true,
+				depthWrite: false,
+				opacity: o / maxocc
+			});
+
+            //let mark = APP.mark.clone();
+			let mark = new THREE.Mesh( ATON.Utils.geomUnitCube, mat);
+            let scale = 0.5; //(o * 5.0) / maxocc;
+			
+			mark.scale.set(scale,scale,scale);
+            K.add(mark);
+
+			APP.gProcessed.add(K);
+		}
+	});
+};
 
 
 // Run the App

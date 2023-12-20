@@ -66,7 +66,7 @@ generateFromCSVdata(data){
             mark.add(gs);
 */
 
-/*
+
             let conesize = 5.0;
             let gfov = new THREE.ConeGeometry( 0.7*conesize, conesize, 10 );
             gfov.rotateX(Math.PI*0.5);
@@ -76,7 +76,7 @@ generateFromCSVdata(data){
             mfov.lookAt(-dx, -dy, -dz);
 
             K.add(mfov);
-*/
+
 
             let gline = new THREE.BufferGeometry().setFromPoints([APP._vZero, new THREE.Vector3(dx, dy, dz)]);
             K.add( new THREE.Line( gline , APP.matDirection) );
