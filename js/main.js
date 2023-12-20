@@ -89,6 +89,11 @@ APP.setupAssets = ()=>{
     });
 };
 
+APP.setTime = (t)=>{
+	APP._record._filterTime = t;
+	APP._record.filter();
+};
+
 APP.setupEvents = ()=>{
 	ATON.on("SceneJSONLoaded", sid =>{
 		let rid = APP.params.get("r");
@@ -105,16 +110,32 @@ APP.setupEvents = ()=>{
 		APP._record = R;
 	});
 
+	// Collaborative
+	ATON.Photon.on("MKH_Time", (t)=>{
+		if (!APP._record) return;
 
+		t = parseFloat(t);
+
+		$("#tSlider").val(t);
+		$("#tValue").html(t);
+
+		APP.setTime(t);
+	});
+
+
+	// UI
 	$("#tSlider").on("input change",()=>{
 		if (!APP._record) return;
 
 		let t = parseFloat( $("#tSlider").val() );
 
-		APP._record._filterTime = t;
-		APP._record.filter();
+		APP.setTime(t);
 
-		$("#tValue").html(t.toFixed(2));
+		t = t.toFixed(2);
+
+		$("#tValue").html(t);
+
+		ATON.Photon.fireEvent("MKH_Time", t);
 	});
 };
 
