@@ -58,14 +58,18 @@ generateFromCSVdata(data){
             gs.scale.set(0.3,0.3,0.3);
             mark.add(gs);
 */
-            //let gf = new THREE.Mesh( new THREE.ConeGeometry( 0.1, 2, 10 ).rotateX(Math.PI*0.5), APP.matFOV );
-            //gf.lookAt(px+dx,py+dy,pz+dz);
 
-            //gf.position.x -= dx*2.5;
-            //gf.position.y -= dy*2.5;
-            //gf.position.z -= dz*2.5;
+/*
+            let conesize = 5.0;
+            let gfov = new THREE.ConeGeometry( 0.7*conesize, conesize, 10 );
+            gfov.rotateX(Math.PI*0.5);
+            gfov.translate(0,0,-0.5*conesize);
+ 
+            let mfov = new THREE.Mesh( gfov, APP.matFOV );
+            mfov.lookAt(-dx, -dy, -dz);
 
-            //K.add(gf);
+            K.add(mfov);
+*/
 
             let gline = new THREE.BufferGeometry().setFromPoints([APP._vZero, new THREE.Vector3(dx, dy, dz)]);
             K.add( new THREE.Line( gline , APP.matDirection) );

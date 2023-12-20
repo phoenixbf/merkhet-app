@@ -78,6 +78,7 @@ APP.setupAssets = ()=>{
     });
 
 	APP.matFOV = new THREE.MeshBasicMaterial({
+		map: new THREE.TextureLoader().load( APP.DIR_ASSETS + "fov.png" ),
         color: ATON.MatHub.colors.green,
 
 		transparent: true,
