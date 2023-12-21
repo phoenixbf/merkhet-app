@@ -3,6 +3,7 @@
 
 ===============================================*/
 import Record from "./record.js";
+import UI from "./ui.js";
 
 
 let APP = ATON.App.realize();
@@ -14,7 +15,13 @@ APP.MARK_SCALE = 0.5;
 
 // Classes/Components
 APP.Record = Record;
+APP.UI     = UI;
 
+APP.getSceneMerkhetID = (sid)=>{
+	if (!sid) sid = ATON.SceneHub.currID;
+
+	return sid.replace("/","-");
+};
 
 // APP.setup() is required for web-app initialization
 // You can place here UI setup (HTML), events handling, etc.
@@ -27,12 +34,7 @@ APP.setup = ()=>{
 
 	ATON.FE.addBasicLoaderEvents(); // Add basic events handling
 
-    ATON.FE.uiAddButtonHome("idBottomToolbar");
-
-	ATON.FE.uiAddButtonVRC("idTopToolbar");
-    ATON.FE.uiAddButtonFullScreen("idTopToolbar");
-    ATON.FE.uiAddButtonQR("idTopToolbar");
-    ATON.FE.uiAddButtonVR("idTopToolbar");
+	APP.UI.init();
 
 	let sid = APP.params.get("s");
 
@@ -54,7 +56,7 @@ APP.setup = ()=>{
 	APP.setupAssets();
 
 	let occupData = APP.params.get("o");
-	if (occupData) APP.loadOccupancyData(APP.MKHET_API+"r/"+sid.replace("/","-")+"/"+occupData);
+	if (occupData) APP.loadOccupancyData(APP.MKHET_API+"r/"+ APP.getSceneMerkhetID(sid) +"/"+occupData);
 };
 
 APP.setupAssets = ()=>{
@@ -127,22 +129,6 @@ APP.setupEvents = ()=>{
 
 		APP.setTime(t);
 	});
-
-
-	// UI
-	$("#tSlider").on("input change",()=>{
-		if (!APP._record) return;
-
-		let t = parseFloat( $("#tSlider").val() );
-
-		APP.setTime(t);
-
-		t = t.toFixed(2);
-
-		$("#tValue").html(t);
-
-		ATON.Photon.fireEvent("MKH_Time", t);
-	});
 };
 
 /* APP.update() if you plan to use an update routine (executed continuously)
@@ -160,16 +146,17 @@ APP.loadOccupancyData = (path)=>{
 
 		let maxocc = points[0].occupancy;
 
-		for (let p=0; p<points.length; p++){
+		for (let p=0; p<50; p++){
 			let P = points[p];
 			let px = P.x;
 			let py = P.y;
 			let pz = P.z;
 			let o  = P.occupancy;
+			let scale = data.voxelsize * 8.0;
 
 			let K = ATON.createUINode("o"+o);
 			K.position.set(px,py,pz);
-
+/*
 			let mat = new THREE.MeshBasicMaterial({
 				color: ATON.MatHub.colors.blue,
 				transparent: true,
@@ -177,12 +164,32 @@ APP.loadOccupancyData = (path)=>{
 				opacity: o / maxocc
 			});
 
-            //let mark = APP.mark.clone();
 			let mark = new THREE.Mesh( ATON.Utils.geomUnitCube, mat);
-            let scale = 0.5; //(o * 5.0) / maxocc;
+*/
+
+			let mat = new THREE.SpriteMaterial({ 
+				map: new THREE.TextureLoader().load( APP.DIR_ASSETS + "mark.png" ),
+				
+				transparent: true,
+				opacity: o / maxocc,
+				
+				color: ATON.MatHub.colors.blue,
+				depthWrite: false, 
+				//depthTest: false
+				
+				blending: THREE.MultiplicativeBlending
+			});
+
+            let mark = new THREE.Sprite(mat);
+        
 			
+			//let scale = 5.0; //(o * 5.0) / maxocc;
 			mark.scale.set(scale,scale,scale);
             K.add(mark);
+
+            K.enablePicking().setOnHover(()=>{
+                console.log("occupancy:" + o);
+            });
 
 			APP.gProcessed.add(K);
 		}

@@ -68,7 +68,7 @@ generateFromCSVdata(data){
 
 
             let conesize = 5.0;
-            let gfov = new THREE.ConeGeometry( 0.7*conesize, conesize, 10 );
+            let gfov = new THREE.ConeGeometry( 0.7*conesize, conesize, 10, 1, true );
             gfov.rotateX(Math.PI*0.5);
             gfov.translate(0,0,-0.5*conesize);
  
@@ -82,7 +82,7 @@ generateFromCSVdata(data){
             K.add( new THREE.Line( gline , APP.matDirection) );
 
             K.enablePicking().setOnHover(()=>{
-                console.log(m)
+                //console.log(m)
             });
 
             this.node.add(K);
@@ -100,8 +100,7 @@ generateFromCSVdata(data){
 
 loadViaAPI( onComplete ){
     let self = this;
-    let sid = ATON.SceneHub.currID;
-    sid = sid.replace("/","-");
+    let sid = APP.getSceneMerkhetID(ATON.SceneHub.currID);
 
     $.get(APP.MKHET_API+"r/"+sid+"/"+self.rid, (data)=>{
         self.generateFromCSVdata(data);
