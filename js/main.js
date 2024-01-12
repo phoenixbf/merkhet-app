@@ -47,10 +47,12 @@ APP.setup = ()=>{
 	APP.gRecords = ATON.createUINode("records");
 	APP.gRecords.attachToRoot();
 	
-	APP.gProcessed = ATON.createUINode("processed");
+	APP.gProcessed = ATON.createSemanticNode("processed");
 	APP.gProcessed.attachToRoot();
 
-	ATON.SUI.showSelector(false);
+	ATON._bqSem = true;
+
+	//ATON.SUI.showSelector(false);
 
 	APP.setupEvents();
 	APP.setupAssets();
@@ -146,7 +148,7 @@ APP.loadOccupancyData = (path)=>{
 
 		let maxocc = points[0].density;
 
-		let maxcount = 100;
+		let maxcount = Math.min(50, points.length);
 
 		let texmark = new THREE.TextureLoader().load( APP.DIR_ASSETS + "mark.png" );
 
@@ -160,14 +162,17 @@ APP.loadOccupancyData = (path)=>{
 
 			let dp = p / maxcount;
 
-			let K = ATON.createUINode("d"+d);
+			let K = ATON.createSemanticNode("d"+d);
 			K.position.set(px,py,pz);
+
+			let o = 0.3 * (d / maxocc);
 
 			let mat = new THREE.MeshBasicMaterial({
 				color: new THREE.Color(1.0 - dp, dp, 0),
 				transparent: true,
 				depthWrite: false,
-				opacity: 0.3 * (d / maxocc)
+				opacity: o,
+				//blending: THREE.AdditiveBlending
 			});
 
 			let mark = new THREE.Mesh( ATON.Utils.geomUnitCube, mat);
@@ -187,17 +192,35 @@ APP.loadOccupancyData = (path)=>{
 			});
 
             let mark = new THREE.Sprite(mat);
-*/      
+*/
 			
 			//let scale = 5.0; //(o * 5.0) / maxocc;
 			mark.scale.set(scale,scale,scale);
-            K.add(mark);
 
-            K.enablePicking().setOnHover(()=>{
+            K.add(mark);
+			//K.load("samples/models/atoncube.glb");
+
+            K.setOnHover(()=>{
                 console.log("density:" + d);
+				mat.opacity = 1.0;
+
+				let text = "Density: "+d.toFixed(4);
+				console.log(text);
+
+				ATON.FE.showSemLabel(text);
+				ATON.SUI.setInfoNodeText(text);
             });
 
-			APP.gProcessed.add(K);
+			K.setOnLeave(()=>{
+				mat.opacity = o;
+
+				ATON.FE.hideSemLabel();
+				//ATON.FE._bSem = false;
+			});
+
+			K.attachTo(APP.gProcessed);
+
+			K.enablePicking();
 		}
 	});
 };
