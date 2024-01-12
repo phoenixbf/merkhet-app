@@ -144,51 +144,57 @@ APP.loadOccupancyData = (path)=>{
 		let points = data.points;
 		if (!points) return;
 
-		let maxocc = points[0].occupancy;
+		let maxocc = points[0].density;
 
-		for (let p=0; p<50; p++){
+		let maxcount = 100;
+
+		let texmark = new THREE.TextureLoader().load( APP.DIR_ASSETS + "mark.png" );
+
+		for (let p=0; p<maxcount; p++){
 			let P = points[p];
 			let px = P.x;
 			let py = P.y;
 			let pz = P.z;
-			let o  = P.occupancy;
-			let scale = data.voxelsize * 8.0;
+			let d  = P.density;
+			let scale = data.voxelsize; // * 8.0;
 
-			let K = ATON.createUINode("o"+o);
+			let dp = p / maxcount;
+
+			let K = ATON.createUINode("d"+d);
 			K.position.set(px,py,pz);
-/*
+
 			let mat = new THREE.MeshBasicMaterial({
-				color: ATON.MatHub.colors.blue,
+				color: new THREE.Color(1.0 - dp, dp, 0),
 				transparent: true,
 				depthWrite: false,
-				opacity: o / maxocc
+				opacity: 0.3 * (d / maxocc)
 			});
 
 			let mark = new THREE.Mesh( ATON.Utils.geomUnitCube, mat);
-*/
 
+/*
 			let mat = new THREE.SpriteMaterial({ 
-				map: new THREE.TextureLoader().load( APP.DIR_ASSETS + "mark.png" ),
+				map: texmark,
 				
 				transparent: true,
-				opacity: o / maxocc,
+				opacity: d / maxocc,
 				
-				color: ATON.MatHub.colors.blue,
+				color: new THREE.Color(1.0 - dp, dp, 0),
 				depthWrite: false, 
 				//depthTest: false
 				
-				blending: THREE.MultiplicativeBlending
+				//blending: THREE.MultiplicativeBlending
 			});
 
             let mark = new THREE.Sprite(mat);
-        
+*/      
 			
 			//let scale = 5.0; //(o * 5.0) / maxocc;
 			mark.scale.set(scale,scale,scale);
             K.add(mark);
 
             K.enablePicking().setOnHover(()=>{
-                console.log("occupancy:" + o);
+                console.log("density:" + d);
             });
 
 			APP.gProcessed.add(K);
