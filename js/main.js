@@ -3,6 +3,8 @@
 
 ===============================================*/
 import Record from "./record.js";
+import Tracer from "./tracer.js";
+import Volume from "./volume.js";
 import UI from "./ui.js";
 
 
@@ -13,9 +15,15 @@ APP.MKHET_API  = "/mkhet/";
 APP.DIR_ASSETS = APP.basePath + "assets/";
 APP.MARK_SCALE = 0.5;
 
+APP.VOID_CAST = (rc, hitlist)=>{};
+
 // Classes/Components
 APP.Record = Record;
 APP.UI     = UI;
+APP.Tracer = Tracer;
+APP.Volume = Volume;
+
+
 
 APP.getSceneMerkhetID = (sid)=>{
 	if (!sid) sid = ATON.SceneHub.currID;
@@ -35,6 +43,7 @@ APP.setup = ()=>{
 	ATON.FE.addBasicLoaderEvents(); // Add basic events handling
 
 	APP.UI.init();
+	APP.Tracer.init();
 
 	let sid = APP.params.get("s");
 
@@ -46,6 +55,9 @@ APP.setup = ()=>{
 
 	APP.gRecords = ATON.createUINode("records");
 	APP.gRecords.attachToRoot();
+
+	APP.gFPoints = ATON.createUINode("focalpoints");
+	APP.gFPoints.attachToRoot();
 	
 	APP.gProcessed = ATON.createSemanticNode("processed");
 	APP.gProcessed.attachToRoot();
@@ -57,8 +69,11 @@ APP.setup = ()=>{
 	APP.setupEvents();
 	APP.setupAssets();
 
-	let occupData = APP.params.get("o");
-	if (occupData) APP.loadOccupancyData(APP.MKHET_API+"r/"+ APP.getSceneMerkhetID(sid) +"/"+occupData);
+	let procData = APP.params.get("p");
+	if (procData) APP.loadProcessedData(APP.MKHET_API+"r/"+ APP.getSceneMerkhetID(sid) +"/"+procData);
+
+	//test
+	APP._volumeFocalPoints = new APP.Volume();
 };
 
 APP.setupAssets = ()=>{
@@ -120,6 +135,15 @@ APP.setupEvents = ()=>{
 		APP._record = R;
 	});
 
+	ATON.on("AllNodeRequestsCompleted",()=>{
+		let bs = ATON._rootVisible.getBound();
+		let bb = new THREE.Box3();
+		bs.getBoundingBox(bb);
+
+		APP._volumeFocalPoints.setExtents(bb.min, bb.max);
+		console.log(APP._volumeFocalPoints);
+	});
+
 	// Collaborative
 	ATON.Photon.on("MKH_Time", (t)=>{
 		if (!APP._record) return;
@@ -139,18 +163,23 @@ APP.update = ()=>{
 };
 */
 
-APP.loadOccupancyData = (path)=>{
+APP.loadProcessedData = (path)=>{
 	$.getJSON( path, ( data )=>{
         console.log("Loaded occupancy data: "+path);
 
 		let points = data.points;
+		let scale  = data.voxelsize * 4.0; // * 8.0;
+		//let scale  = data.voxelsize;
+
 		if (!points) return;
 
-		let maxocc = points[0].density;
+		let maxdens = points[0].density;
 
-		let maxcount = Math.min(50, points.length);
+		let maxcount = Math.min(300, points.length);
+		console.log(maxcount)
 
 		let texmark = new THREE.TextureLoader().load( APP.DIR_ASSETS + "mark.png" );
+		let maxcolor = new THREE.Color(1, 0, 0);
 
 		for (let p=0; p<maxcount; p++){
 			let P = points[p];
@@ -158,17 +187,19 @@ APP.loadOccupancyData = (path)=>{
 			let py = P.y;
 			let pz = P.z;
 			let d  = P.density;
-			let scale = data.voxelsize; // * 8.0;
 
-			let dp = p / maxcount;
+			let dp = parseFloat(p) / parseFloat(maxcount);
+			//console.log(dp)
 
 			let K = ATON.createSemanticNode("d"+d);
 			K.position.set(px,py,pz);
 
-			let o = 0.3 * (d / maxocc);
+			let o = (d / maxdens) * 0.3;
 
+/*
+			// cubes
 			let mat = new THREE.MeshBasicMaterial({
-				color: new THREE.Color(1.0 - dp, dp, 0),
+				color: maxcolor.lerp(ATON.MatHub.colors.green, dp),
 				transparent: true,
 				depthWrite: false,
 				opacity: o,
@@ -176,15 +207,18 @@ APP.loadOccupancyData = (path)=>{
 			});
 
 			let mark = new THREE.Mesh( ATON.Utils.geomUnitCube, mat);
-
-/*
+			mark.scale.set(scale,scale,scale);
+			K.add(mark);
+*/
+			
+			// Blobs
 			let mat = new THREE.SpriteMaterial({ 
 				map: texmark,
 				
 				transparent: true,
-				opacity: d / maxocc,
+				opacity: o,
 				
-				color: new THREE.Color(1.0 - dp, dp, 0),
+				color: maxcolor.lerp(ATON.MatHub.colors.green, dp),
 				depthWrite: false, 
 				//depthTest: false
 				
@@ -192,16 +226,20 @@ APP.loadOccupancyData = (path)=>{
 			});
 
             let mark = new THREE.Sprite(mat);
-*/
+			mark.raycast = APP.VOID_CAST;
 			
-			//let scale = 5.0; //(o * 5.0) / maxocc;
+			//let scale = 5.0; //(o * 5.0) / maxdens;
 			mark.scale.set(scale,scale,scale);
 
             K.add(mark);
-			//K.load("samples/models/atoncube.glb");
+
+			let trigger = new THREE.Mesh( ATON.Utils.geomUnitCube, ATON.MatHub.materials.fullyTransparent);
+			trigger.scale.set(0.2,0.2,0.2);
+			K.add(trigger)
+
 
             K.setOnHover(()=>{
-                console.log("density:" + d);
+                //console.log("density:" + d);
 				mat.opacity = 1.0;
 
 				let text = "Density: "+d.toFixed(4);
@@ -222,6 +260,86 @@ APP.loadOccupancyData = (path)=>{
 
 			K.enablePicking();
 		}
+	});
+};
+
+APP.computeFocalPointsFromCurrentRecords = ()=>{
+	if (!APP._record) return;
+
+	let marks = APP._record.node.children;
+
+	for (let m in marks){
+		let M = marks[m];
+
+		let data = M.userData;
+		//console.log(data);
+
+		let R = APP.Tracer.trace(
+			new THREE.Vector3(data.pos[0],data.pos[1],data.pos[2]), 
+			new THREE.Vector3(data.dir[0],data.dir[1],data.dir[2])
+		);
+
+		if (R){
+			APP._volumeFocalPoints.setData(R.p, (d)=>{
+				if (!d) return {
+					hits: 1
+				}
+
+				return {
+					hits: d.hits + 1
+				}
+			});
+		}
+/*
+		if (R){
+			let H = new THREE.Sprite(APP.matSpriteMark);
+			H.raycast = APP.VOID_CAST;
+
+			//console.log(R.p)
+			H.position.copy(R.p);
+			let s = 0.1*R.d;
+			H.scale.set(s,s,s);
+
+			APP.gFPoints.add(H);
+		}
+*/
+	}
+
+	let vs = APP._volumeFocalPoints._voxelsize.x;
+	let texmark = new THREE.TextureLoader().load( APP.DIR_ASSETS + "mark.png" );
+
+	let focmats = [];
+	for (let i=0; i<20; i++){
+		let p = i/20.0;
+
+		let mat = new THREE.SpriteMaterial({ 
+			map: texmark,
+			
+			transparent: true,
+			opacity: p,
+			
+			color: new THREE.Color(p, 1.0-p, 0),
+			depthWrite: false, 
+			//depthTest: false,
+			
+			blending: THREE.AdditiveBlending
+		});
+
+		focmats.push(mat);
+	}
+
+	APP._volumeFocalPoints.forEachVoxel((v)=>{
+		let mi = v.data.hits;
+		if (mi >= focmats.length) mi = focmats.length-1;
+
+		let H = new THREE.Sprite( focmats[mi] );
+		H.raycast = APP.VOID_CAST;
+
+		H.position.copy(v.loc);
+		let s = vs * mi * 4.0;
+		H.scale.set(s,s,s);
+
+		APP.gFPoints.add(H);
 	});
 };
 
