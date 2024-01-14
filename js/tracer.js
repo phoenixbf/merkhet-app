@@ -7,6 +7,17 @@ Tracer.init = ()=>{
 
 	Tracer._hitList = [];
 	Tracer._hit = {};
+
+	Tracer._offs = undefined;
+	Tracer._maxD = undefined;
+};
+
+Tracer.setMaxDistance = (maxD)=>{
+	Tracer._maxD = maxD;
+};
+
+Tracer.setOffset = (offs)=>{
+	Tracer._offs = offs;
 };
 
 Tracer.trace = (location, direction, maxD)=>{
@@ -23,12 +34,18 @@ Tracer.trace = (location, direction, maxD)=>{
 
     const h = Tracer._hitList[0];
 
-	if (maxD && h.distance > maxD) return undefined;
+	if (Tracer._maxD && h.distance > Tracer._maxD) return undefined;
 
     Tracer._hit.p  = h.point;
     Tracer._hit.d  = h.distance;
     //Tracer._hit.o  = h.object;
     Tracer._hit.uv = h.uv;
+
+	if (Tracer._offs){
+		Tracer._hit.p.x -= (direction.x * Tracer._offs);
+		Tracer._hit.p.y -= (direction.y * Tracer._offs);
+		Tracer._hit.p.z -= (direction.z * Tracer._offs);
+	}
 
 	return Tracer._hit;
 };

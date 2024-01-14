@@ -14,8 +14,6 @@ UI.init = ()=>{
 
 
 	$("#tSlider").on("input change",()=>{
-		if (!APP._record) return;
-
 		let t = parseFloat( $("#tSlider").val() );
 
 		APP.setTime(t);
@@ -24,12 +22,13 @@ UI.init = ()=>{
 
 		$("#tValue").html(t);
 
+		let R = APP.getActiveRecord();
+		ATON.Nav.requestPOVbyNode( R.getCurrentMark() );
+
 		ATON.Photon.fireEvent("MKH_Time", t);
 	});
 
 	$("#tRad").on("input change", ()=>{
-        if (!APP._record) return;
-        
 		let r = parseFloat( $("#tRad").val() );
 
 		APP._record._filterTRad = r;
@@ -39,17 +38,26 @@ UI.init = ()=>{
 
 UI.popupRecords = ()=>{
     let htmlcontent = "<div class='atonPopupTitle'>Records</div>";
+	//htmlcontent += "<h2>Current Records</h2>";
+	for (let r in APP._records) htmlcontent += "<div class='atonBTN atonBTN-horizontal'>"+r+"</div>";
+	htmlcontent += "<br>";
+
     htmlcontent += "<div class='atonPopupDescriptionContainer' style='text-align:center'>Select records to load</div><br>";
-    
     htmlcontent += "<input id='rID' type='text' size='40' list='idRList' ></input>";
     htmlcontent += "<datalist id='idRList'></datalist><br>";
 
-	htmlcontent += "<div id='rLoad' class='atonBTN atonBTN-green atonBTN-text'><img src='"+ATON.FE.PATH_RES_ICONS+"db.png'>LOAD</div>";
+	htmlcontent += "<div id='rLoad' class='atonBTN atonBTN-green atonBTN-horizontal'><img src='"+ATON.FE.PATH_RES_ICONS+"db.png'>LOAD</div>";
+	htmlcontent += "<div id='rComputeFoc' class='atonBTN atonBTN-red atonBTN-horizontal'><img src='"+ATON.FE.PATH_RES_ICONS+"lp.png'>Compute Focal Points</div>";
 
     if ( !ATON.FE.popupShow(htmlcontent) ) return;
 
     $.get(APP.MKHET_API+"r/"+ APP.getSceneMerkhetID() +"/@", (data)=>{
-        for (let d in data) $("#idRList").append("<option>"+data[d]+"</option>");
+        for (let d in data){
+			let rid = data[d];
+
+			// Avoid duplicates
+			if (!APP._records[rid]) $("#idRList").append("<option>"+data[d]+"</option>");
+		}
     });
 
     $("#rLoad").click(()=>{
@@ -63,10 +71,16 @@ UI.popupRecords = ()=>{
 			$("#tSlider").attr("max", R._tRangeMax);
 		});
 
-		APP._record = R;
+		APP._records[rid] = R;
+		APP._currRID = rid;
         
         ATON.FE.popupClose();
     });
+
+	$("#rComputeFoc").click(()=>{
+		APP.computeFocalPointsForLoadedRecords();
+		ATON.FE.popupClose();
+	});
 };
 
 export default UI;

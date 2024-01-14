@@ -5,23 +5,46 @@ constructor(rid){
     super();
 
     this.rid  = rid;
-    this.node = undefined;
+    this.node  = undefined;
+    this.marks = undefined;
 
     this._filterTime = 0.0;
     this._filterTRad = 0.2;
+    this._currMarkInd = 0;
 
     this._tRangeMin = undefined;
     this._tRangeMax = undefined;
+    this._tRangeD   = 0.0;
+}
+
+clear(){
+    this.marks.clear();
+    this.node.clear();
+}
+
+getMark(i){
+    if (!this.marks) return undefined;
+
+    let marks = this.marks.children;
+    return marks[i];
+}
+
+getCurrentMark(){
+    return this.getMark(this._currMarkInd);
 }
 
 generateFromCSVdata(data){
     this.node = ATON.createUINode(this.rid);
 
+    this.marks = ATON.createUINode();
+    this.marks.attachTo(this.node);
+
     let rows = data.split("\n");
     let num = rows.length;
     let values;
 
-    //console.log(rows)
+    let path = [];
+    
 
     for (let m=1; m<num; m++){
         let M = rows[m];
@@ -48,6 +71,8 @@ generateFromCSVdata(data){
             let K = ATON.createUINode(this.rid+"-m"+m);
             K.position.set(px,py,pz);
 
+            path.push(K.position);
+
             // UserData
             K.userData.time = t;
             K.userData.nav  = nav;
@@ -66,7 +91,7 @@ generateFromCSVdata(data){
             mark.add(gs);
 */
 
-
+/*
             let conesize = 5.0;
             let gfov = new THREE.ConeGeometry( 0.7*conesize, conesize, 10, 1, true );
             gfov.rotateX(Math.PI*0.5);
@@ -76,7 +101,7 @@ generateFromCSVdata(data){
             mfov.lookAt(-dx, -dy, -dz);
 
             K.add(mfov);
-
+*/
 
             let gline = new THREE.BufferGeometry().setFromPoints([APP._vZero, new THREE.Vector3(dx, dy, dz)]);
             K.add( new THREE.Line( gline , APP.matDirection) );
@@ -85,7 +110,7 @@ generateFromCSVdata(data){
                 //console.log(m)
             });
 
-            this.node.add(K);
+            this.marks.add(K);
 
             this._tRangeMax = t;
         }
@@ -93,7 +118,12 @@ generateFromCSVdata(data){
 
     this.node.attachTo(APP.gRecords);
 
-    console.log(this.node)
+    // Path
+    let gPath = new THREE.BufferGeometry().setFromPoints( path );
+    let mPath = new THREE.Line( gPath, APP.matPath );
+    this.node.add(mPath);
+
+    this._tRangeD = (this._tRangeMax - this._tRangeMin);
 
     return this;
 }
@@ -122,19 +152,23 @@ loadFromCSVurl(url, onComplete){
 }
 
 filter(){
-    let marks = this.node.children;
+    let marks = this.marks.children;
     let num = marks.length;
+    if (num < 1) return;
 
-    let tA = this._filterTime - this._filterTRad;
-    let tB = this._filterTime + this._filterTRad;
+    if (this._tRangeMax===undefined || this._tRangeMin===undefined) return;
 
-    //console.log(tA+","+tB)
+    let t = (this._filterTime - this._tRangeMin) / this._tRangeD;
+
+    this._currMarkInd = parseInt(t*num);
 
     for (let r=0; r<num; r++){
         let M = marks[r];
         let mt = M.userData.time;
 
-        if (mt >= tA && mt <= tB) M.show();
+        if (r === this._currMarkInd){
+            M.show();
+        }
         else M.hide();
     }
 
