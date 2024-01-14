@@ -63,12 +63,20 @@ UI.popupRecords = ()=>{
     $("#rLoad").click(()=>{
         let rid = $("#rID").val();
 
+		if (rid.endsWith(".json")){
+			APP.loadProcessedData(APP.MKHET_API+"r/"+ APP._mksid +"/"+rid);
+			ATON.FE.popupClose();
+
+			return;
+		}
+
 		let R = new APP.Record(rid);
 		R.loadViaAPI(()=>{
 			console.log(R._tRangeMin+","+R._tRangeMax);
 
 			$("#tSlider").attr("min", R._tRangeMin);
 			$("#tSlider").attr("max", R._tRangeMax);
+
 		});
 
 		APP._records[rid] = R;

@@ -10,6 +10,9 @@ Tracer.init = ()=>{
 
 	Tracer._offs = undefined;
 	Tracer._maxD = undefined;
+
+	Tracer._bComputeNorm = true;
+	Tracer._mw = undefined;
 };
 
 Tracer.setMaxDistance = (maxD)=>{
@@ -38,7 +41,7 @@ Tracer.trace = (location, direction, maxD)=>{
 
     Tracer._hit.p  = h.point;
     Tracer._hit.d  = h.distance;
-    //Tracer._hit.o  = h.object;
+    Tracer._hit.o  = h.object;
     Tracer._hit.uv = h.uv;
 
 	if (Tracer._offs){
@@ -46,6 +49,14 @@ Tracer.trace = (location, direction, maxD)=>{
 		Tracer._hit.p.y -= (direction.y * Tracer._offs);
 		Tracer._hit.p.z -= (direction.z * Tracer._offs);
 	}
+
+    // Normals
+	if (!Tracer._bComputeNorm) return Tracer._hit;
+    if (!h.face) return Tracer._hit;
+    if (!h.face.normal) return Tracer._hit;
+
+    Tracer._mw = new THREE.Matrix3().getNormalMatrix( h.object.matrixWorld );
+    Tracer._hit.n = h.face.normal.clone().applyMatrix3( Tracer._mw ).normalize();
 
 	return Tracer._hit;
 };

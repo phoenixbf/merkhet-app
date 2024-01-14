@@ -70,8 +70,10 @@ APP.setup = ()=>{
 	APP.setupEvents();
 	APP.setupAssets();
 
+	APP._mksid = APP.getSceneMerkhetID(sid);
+
 	let procData = APP.params.get("p");
-	if (procData) APP.loadProcessedData(APP.MKHET_API+"r/"+ APP.getSceneMerkhetID(sid) +"/"+procData);
+	if (procData) APP.loadProcessedData(APP.MKHET_API+"r/"+ APP._mksid +"/"+procData);
 
 	//test
 	APP._volumeFocalPoints = new APP.Volume();
@@ -371,12 +373,18 @@ APP.computeFocalPointsForRecord = (R)=>{
 
 		if (R){
 			APP._volumeFocalPoints.setData(R.p, (d)=>{
-				if (!d) return { hits: 1 };
+				if (!d) return {
+					hits: 1,
+					//n: R.n
+				};
 
 				let h = d.hits + 1;
 				if (h > APP._maxFocHits) APP._maxFocHits = h;
 
-				return { hits: h };
+				return { 
+					hits: h,
+					//n: R.n
+				};
 			});
 		}
 	}
