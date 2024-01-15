@@ -23,7 +23,7 @@ UI.init = ()=>{
 		$("#tValue").html(t);
 
 		let R = APP.getActiveRecord();
-		ATON.Nav.requestPOVbyNode( R.getCurrentMark() );
+		if (!APP._bPano) ATON.Nav.requestPOVbyNode( R.getCurrentMark() );
 
 		ATON.Photon.fireEvent("MKH_Time", t);
 	});
@@ -86,7 +86,7 @@ UI.popupRecords = ()=>{
     });
 
 	$("#rComputeFoc").click(()=>{
-		APP.computeFocalPointsForLoadedRecords();
+		APP.Processor.computeFocalPointsForLoadedRecords();
 		ATON.FE.popupClose();
 	});
 };

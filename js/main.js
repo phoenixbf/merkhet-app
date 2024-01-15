@@ -3,8 +3,7 @@
 
 ===============================================*/
 import Record from "./record.js";
-import Tracer from "./tracer.js";
-import Volume from "./volume.js";
+import Processor from "./processor.js";
 import UI from "./ui.js";
 
 
@@ -18,10 +17,9 @@ APP.MARK_SCALE = 0.5;
 APP.VOID_CAST = (rc, hitlist)=>{};
 
 // Classes/Components
-APP.Record = Record;
-APP.UI     = UI;
-APP.Tracer = Tracer;
-APP.Volume = Volume;
+APP.Record    = Record;
+APP.UI        = UI;
+APP.Processor = Processor;
 
 
 
@@ -38,19 +36,24 @@ APP.setup = ()=>{
 	APP._currRID = undefined;
 
 	APP._vZero = new THREE.Vector3(0,0,0);
+	
+	APP._panoScale = 100.0;
+	APP._bPano = false;
+	APP._bbPano = new THREE.Box3(
+		new THREE.Vector3(-APP._panoScale,-APP._panoScale,-APP._panoScale),
+		new THREE.Vector3(APP._panoScale,APP._panoScale,APP._panoScale)
+	);
 
     ATON.FE.realize(); // Realize the base front-end
 
 	ATON.FE.addBasicLoaderEvents(); // Add basic events handling
 
 	APP.UI.init();
-	APP.Tracer.init();
+	APP.Processor.init();
 
 	let sid = APP.params.get("s");
-
 	if (!sid) return;
 
-	console.log(sid)
 
 	ATON.FE.loadSceneID(sid);
 
@@ -74,9 +77,6 @@ APP.setup = ()=>{
 
 	let procData = APP.params.get("p");
 	if (procData) APP.loadProcessedData(APP.MKHET_API+"r/"+ APP._mksid +"/"+procData);
-
-	//test
-	APP._volumeFocalPoints = new APP.Volume();
 };
 
 APP.setupAssets = ()=>{
@@ -125,6 +125,16 @@ APP.setupAssets = ()=>{
     });
 };
 
+APP.setPanoramicMode = (b)=>{
+	APP._bPano = b;
+
+    if (b){
+        APP.Processor.setupVolumesBounds(APP._bbPano);
+
+        console.log("Panoramic Mode");
+    }
+};
+
 APP.getActiveRecord = ()=>{
 	return APP._records[APP._currRID];
 };
@@ -152,6 +162,11 @@ APP.setupEvents = ()=>{
 	});
 
 	ATON.on("SceneJSONLoaded", sid =>{
+
+		// Detect 360
+		let sd = ATON.SceneHub.currData;
+		if (sd.environment && sd.environment.mainpano) APP.setPanoramicMode(true);
+
 		let rid = APP.params.get("r");
 		if (!rid) return;
 
@@ -172,8 +187,7 @@ APP.setupEvents = ()=>{
 		let bb = new THREE.Box3();
 		bs.getBoundingBox(bb);
 
-		APP._volumeFocalPoints.setExtents(bb.min, bb.max);
-		console.log(APP._volumeFocalPoints);
+		APP.Processor.setupVolumesBounds(bb);
 
 		ATON.Nav.setOrbitControl();
 	});
@@ -263,7 +277,7 @@ APP.loadProcessedData = (path)=>{
 			mark.raycast = APP.VOID_CAST;
 			
 			//let scale = 5.0; //(o * 5.0) / maxdens;
-			mark.scale.set(scale,scale,scale);
+			mark.scale.setScalar(scale);
 
             K.add(mark);
 
@@ -274,7 +288,8 @@ APP.loadProcessedData = (path)=>{
 
             K.setOnHover(()=>{
                 //console.log("density:" + d);
-				mat.opacity = 1.0;
+				mat.opacity = o*2.0;
+				//mark.scale.setScalar(scale*2.0);
 
 				let text = "Density: "+d.toFixed(4);
 				console.log(text);
@@ -285,6 +300,7 @@ APP.loadProcessedData = (path)=>{
 
 			K.setOnLeave(()=>{
 				mat.opacity = o;
+				//mark.scale.setScalar(scale);
 
 				ATON.FE.hideSemLabel();
 				//ATON.FE._bSem = false;
@@ -297,6 +313,7 @@ APP.loadProcessedData = (path)=>{
 	});
 };
 
+/*
 APP.computeFocalPointsForLoadedRecords = ()=>{
 	APP._maxFocHits = 0;
 
@@ -389,7 +406,7 @@ APP.computeFocalPointsForRecord = (R)=>{
 		}
 	}
 };
-
+*/
 
 // Run the App
 window.addEventListener('load', ()=>{

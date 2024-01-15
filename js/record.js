@@ -69,7 +69,6 @@ generateFromCSVdata(data){
             let fov = parseFloat(values[11]);
 
             let K = ATON.createUINode(this.rid+"-m"+m);
-            K.position.set(px,py,pz);
 
             path.push(K.position);
 
@@ -81,30 +80,44 @@ generateFromCSVdata(data){
             K.userData.fov  = fov;
 
             // 3D Representation
-            let mark = APP.mark.clone();
-            //mark.position.set(px,py,pz);
-            mark.scale.set(APP.MARK_SCALE,APP.MARK_SCALE,APP.MARK_SCALE);
+            let mark = APP.mark.clone();            
             K.add(mark);
+
+            if (APP._bPano){
+                K.position.set(
+                    dx * APP._panoScale,
+                    dy * APP._panoScale,
+                    dz * APP._panoScale
+                );
+
+                mark.scale.setScalar(APP.MARK_SCALE * 50.0);
+            }
+            else {
+                mark.scale.setScalar(APP.MARK_SCALE);
+                K.position.set(px,py,pz);
 /*
-            let gs = new THREE.Mesh( ATON.Utils.geomUnitCube, ATON.MatHub.materials.fullyTransparent);
-            gs.scale.set(0.3,0.3,0.3);
-            mark.add(gs);
+                let gs = new THREE.Mesh( ATON.Utils.geomUnitCube, ATON.MatHub.materials.fullyTransparent);
+                gs.scale.set(0.3,0.3,0.3);
+                mark.add(gs);
 */
 
 /*
-            let conesize = 5.0;
-            let gfov = new THREE.ConeGeometry( 0.7*conesize, conesize, 10, 1, true );
-            gfov.rotateX(Math.PI*0.5);
-            gfov.translate(0,0,-0.5*conesize);
- 
-            let mfov = new THREE.Mesh( gfov, APP.matFOV );
-            mfov.lookAt(-dx, -dy, -dz);
+                let conesize = 5.0;
+                let gfov = new THREE.ConeGeometry( 0.7*conesize, conesize, 10, 1, true );
+                gfov.rotateX(Math.PI*0.5);
+                gfov.translate(0,0,-0.5*conesize);
+    
+                let mfov = new THREE.Mesh( gfov, APP.matFOV );
+                mfov.lookAt(-dx, -dy, -dz);
 
-            K.add(mfov);
+                K.add(mfov);
 */
 
-            let gline = new THREE.BufferGeometry().setFromPoints([APP._vZero, new THREE.Vector3(dx, dy, dz)]);
-            K.add( new THREE.Line( gline , APP.matDirection) );
+
+                let gline = new THREE.BufferGeometry().setFromPoints([APP._vZero, new THREE.Vector3(dx, dy, dz)]);
+                K.add( new THREE.Line( gline , APP.matDirection) );
+            }
+
 
             K.enablePicking().setOnHover(()=>{
                 //console.log(m)
