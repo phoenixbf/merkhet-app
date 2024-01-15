@@ -11,13 +11,16 @@ Processor.init = ()=>{
     // Computed focal voxels
     Processor._volumeFocalPoints = new Volume();
     Processor._maxFocHits = 0;
+    Processor._bvBB = false;
 };
 
 // Set extents for all volumes
 Processor.setupVolumesBounds = (bb)=>{
+    if (Processor._bvBB) return;
     Processor._volumeFocalPoints.setExtents(bb.min, bb.max);
     
     console.log(APP.Processor._volumeFocalPoints);
+    Processor._bvBB = true;
 };
 
 Processor.computeFocalPointsForRecord = (R)=>{
@@ -96,7 +99,6 @@ Processor.computeFocalPointsForLoadedRecords = ()=>{
 
 	// Populate foc-points
 	let vs = vFoc._voxelsize.x;
-	let texmark = new THREE.TextureLoader().load( APP.DIR_ASSETS + "mark.png" );
 
 	let focmats = [];
 
@@ -106,18 +108,9 @@ Processor.computeFocalPointsForLoadedRecords = ()=>{
 	for (let i=minhits; i<=Processor._maxFocHits; i++){
 		let p = (i-minhits)/(Processor._maxFocHits-minhits);
 
-		let mat = new THREE.SpriteMaterial({ 
-			map: texmark,
-			
-			transparent: true,
-			opacity: p,
-			
-			color: new THREE.Color(p, 1.0-p, 0),
-			depthWrite: false, 
-			depthTest: false,
-			
-			//blending: THREE.AdditiveBlending
-		});
+        let mat = APP.matSpriteFocal.clone();
+        mat.color   = new THREE.Color(p, 1.0-p, 0)
+        mat.opacity = p;
 
 		focmats[i] = mat;
 	}

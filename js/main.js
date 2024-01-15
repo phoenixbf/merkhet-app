@@ -91,7 +91,22 @@ APP.setupAssets = ()=>{
         //depthTest: false
         
 		//blending: THREE.AdditiveBlending
+		toneMapped: false
     });
+
+	APP.matSpriteFocal = new THREE.SpriteMaterial({ 
+		map: APP.matSpriteMark.map,
+		
+		transparent: true,
+		opacity: 1.0,
+		
+		color: ATON.MatHub.colors.green,
+		depthWrite: false, 
+		depthTest: false,
+		
+		blending: THREE.AdditiveBlending,
+		toneMapped: false
+	});
 
 	APP.mark = new THREE.Sprite(APP.matSpriteMark);
 
@@ -103,14 +118,17 @@ APP.setupAssets = ()=>{
         opacity: 0.5, 
         //depthTest: false
         //flatShading: true
+		toneMapped: false
     });
 
 	APP.matPath = new THREE.MeshBasicMaterial({
         color: ATON.MatHub.colors.blue,
-        linewidth: 5,
+
         transparent: true,
         depthWrite: false,
-        opacity: 1.0
+        opacity: 1.0,
+
+		toneMapped: false
     });
 
 	APP.matFOV = new THREE.MeshBasicMaterial({
@@ -122,6 +140,7 @@ APP.setupAssets = ()=>{
         opacity: 0.1, 
         //depthTest: false
         //flatShading: true
+		toneMapped: false
     });
 };
 
@@ -154,6 +173,23 @@ APP.setTime = (t)=>{
 */
 };
 
+APP.detectPanoramicScene = ()=>{
+	let sd = ATON.SceneHub.currData;
+
+	if (!sd.environment || !sd.environment.mainpano) return false;
+
+	if (!sd.scenegraph) return true;
+
+	let snodes = sd.scenegraph.nodes;
+	if (!snodes) return true;
+
+	for (let n in snodes){
+		if (snodes[n] && snodes[n].urls) return false;
+	}
+
+	return true;
+};
+
 APP.setupEvents = ()=>{
 	// Keyboard
 	ATON.on("KeyPress", (k)=>{
@@ -164,8 +200,7 @@ APP.setupEvents = ()=>{
 	ATON.on("SceneJSONLoaded", sid =>{
 
 		// Detect 360
-		let sd = ATON.SceneHub.currData;
-		if (sd.environment && sd.environment.mainpano) APP.setPanoramicMode(true);
+		APP.setPanoramicMode( APP.detectPanoramicScene() );
 
 		let rid = APP.params.get("r");
 		if (!rid) return;
@@ -183,6 +218,8 @@ APP.setupEvents = ()=>{
 	});
 
 	ATON.on("AllNodeRequestsCompleted",()=>{
+		if (APP._bPano) return;
+
 		let bs = ATON._rootVisible.getBound();
 		let bb = new THREE.Box3();
 		bs.getBoundingBox(bb);
