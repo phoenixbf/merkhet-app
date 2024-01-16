@@ -1,7 +1,7 @@
 # Merkhet App
 ![alt text](./appicon.png)
 
-Merkhet web-app is a Collaborative Immersive Analytics WebXR toolkit, developed under [H2IOSC project](https://www.h2iosc.cnr.it/) as part of task 7.7 (Immersive Analytics).
+"Merkhet" web-app is a Collaborative Immersive Analytics WebXR toolkit, developed under [H2IOSC project](https://www.h2iosc.cnr.it/) as part of task 7.7 (Immersive Analytics).
 It is used in conjunction with [Merkhet plugin](https://github.com/phoenixbf/merkhet-plugin) for ATON, specifically dedicated to capture and track users' interactive sesssions.
 
 ## Getting started

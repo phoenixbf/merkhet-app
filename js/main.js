@@ -22,6 +22,12 @@ APP.UI        = UI;
 APP.Processor = Processor;
 
 
+APP.recColors = [
+	new THREE.Color(0,0,1),
+	new THREE.Color(1,0,1),
+	new THREE.Color(0,1,1),
+];
+
 
 APP.getSceneMerkhetID = (sid)=>{
 	if (!sid) sid = ATON.SceneHub.currID;
@@ -126,7 +132,7 @@ APP.setupAssets = ()=>{
 
         transparent: true,
         depthWrite: false,
-        opacity: 1.0,
+        opacity: 0.7,
 
 		toneMapped: false
     });
@@ -152,10 +158,6 @@ APP.setPanoramicMode = (b)=>{
 
         console.log("Panoramic Mode");
     }
-};
-
-APP.getActiveRecord = ()=>{
-	return APP._records[APP._currRID];
 };
 
 APP.setTime = (t)=>{
@@ -190,6 +192,50 @@ APP.detectPanoramicScene = ()=>{
 	return true;
 };
 
+APP.setActiveRecord = (rid)=>{
+	let R = APP._records[rid];
+	console.log(rid)
+
+	if (!R) return;
+
+	APP._currRID = rid;
+
+	$("#tSlider").attr("min", R._tRangeMin);
+	$("#tSlider").attr("max", R._tRangeMax);
+	$("#tSlider").val(R._tRangeMin);
+
+	R.node.show();
+	console.log("Active Record: "+rid);
+};
+
+APP.getActiveRecord = ()=>{
+	return APP._records[APP._currRID];
+};
+
+APP.loadRecord = (rid)=>{
+
+	let R = new APP.Record(rid);
+	R.loadViaAPI(()=>{
+		let strcol = "rgba("+R._color.r*127+","+R._color.g*127+","+R._color.b*127+",0.5)";
+
+		console.log(R._tRangeMin+","+R._tRangeMax);
+
+		$("#tSlider").attr("min", R._tRangeMin);
+		$("#tSlider").attr("max", R._tRangeMax);
+		$("#tSlider").val(R._tRangeMin);
+
+		$("#recTabs").append("<div class='tabRecord' id='tabrec-"+rid+"' style='background-color: "+strcol+"'>"+rid+"</div>");
+
+		$("#tabrec-"+rid).click(()=>{
+			APP.setActiveRecord(rid);
+		});
+
+		APP._records[rid] = R;
+
+		APP.setActiveRecord(rid);
+	});
+};
+
 APP.setupEvents = ()=>{
 	// Keyboard
 	ATON.on("KeyPress", (k)=>{
@@ -205,16 +251,7 @@ APP.setupEvents = ()=>{
 		let rid = APP.params.get("r");
 		if (!rid) return;
 
-		let R = new APP.Record(rid);
-		R.loadViaAPI(()=>{
-			console.log(R._tRangeMin+","+R._tRangeMax);
-
-			$("#tSlider").attr("min", R._tRangeMin);
-			$("#tSlider").attr("max", R._tRangeMax);
-		});
-
-		APP._records[rid] = R;
-		APP._currRID = rid;
+		APP.loadRecord(rid);
 	});
 
 	ATON.on("AllNodeRequestsCompleted",()=>{
@@ -263,7 +300,7 @@ APP.loadProcessedData = (path)=>{
 		let maxcount = Math.min(300, points.length);
 		console.log(maxcount)
 
-		let texmark = new THREE.TextureLoader().load( APP.DIR_ASSETS + "mark.png" );
+		//let texmark = new THREE.TextureLoader().load( APP.DIR_ASSETS + "mark.png" );
 		let maxcolor = new THREE.Color(1, 0, 0);
 
 		for (let p=0; p<maxcount; p++){
@@ -298,7 +335,7 @@ APP.loadProcessedData = (path)=>{
 			
 			// Blobs
 			let mat = new THREE.SpriteMaterial({ 
-				map: texmark,
+				map: APP.matSpriteMark.map,
 				
 				transparent: true,
 				opacity: o,
@@ -308,6 +345,8 @@ APP.loadProcessedData = (path)=>{
 				//depthTest: false
 				
 				//blending: THREE.MultiplicativeBlending
+				toneMapped: false
+
 			});
 
             let mark = new THREE.Sprite(mat);
@@ -350,100 +389,6 @@ APP.loadProcessedData = (path)=>{
 	});
 };
 
-/*
-APP.computeFocalPointsForLoadedRecords = ()=>{
-	APP._maxFocHits = 0;
-
-	APP._volumeFocalPoints.clear();
-	APP.gFPoints.clear();
-
-	for (let r in APP._records){
-		APP.computeFocalPointsForRecord(APP._records[r]);
-	}
-
-	// Populate foc-points
-	let vs = APP._volumeFocalPoints._voxelsize.x;
-	let texmark = new THREE.TextureLoader().load( APP.DIR_ASSETS + "mark.png" );
-
-	let focmats = [];
-
-	let minhits = parseInt(APP._maxFocHits*0.2);
-	console.log(minhits,APP._maxFocHits);
-
-	for (let i=minhits; i<=APP._maxFocHits; i++){
-		let p = (i-minhits)/(APP._maxFocHits-minhits);
-
-		let mat = new THREE.SpriteMaterial({ 
-			map: texmark,
-			
-			transparent: true,
-			opacity: p,
-			
-			color: new THREE.Color(p, 1.0-p, 0),
-			depthWrite: false, 
-			depthTest: false,
-			
-			blending: THREE.AdditiveBlending
-		});
-
-		focmats[i] = mat;
-	}
-
-	APP._volumeFocalPoints.forEachVoxel((v)=>{
-		let mi = v.data.hits;
-
-		if (mi < minhits) return;
-
-		let H = new THREE.Sprite( focmats[mi] );
-		H.raycast = APP.VOID_CAST;
-
-		mi = (mi-minhits)+1;
-
-		H.position.copy(v.loc);
-		let s = vs * 4.0 * mi;
-		H.scale.set(s,s,s);
-
-		APP.gFPoints.add(H);
-	});
-};
-
-APP.computeFocalPointsForRecord = (R)=>{
-	if (!R) return;
-
-	let marks = R.marks.children;
-
-	for (let m in marks){
-		let M = marks[m];
-
-		let data = M.userData;
-		//console.log(data);
-
-		//APP.Tracer.setOffset(0.1);
-
-		let R = APP.Tracer.trace(
-			new THREE.Vector3(data.pos[0],data.pos[1],data.pos[2]), 
-			new THREE.Vector3(data.dir[0],data.dir[1],data.dir[2])
-		);
-
-		if (R){
-			APP._volumeFocalPoints.setData(R.p, (d)=>{
-				if (!d) return {
-					hits: 1,
-					//n: R.n
-				};
-
-				let h = d.hits + 1;
-				if (h > APP._maxFocHits) APP._maxFocHits = h;
-
-				return { 
-					hits: h,
-					//n: R.n
-				};
-			});
-		}
-	}
-};
-*/
 
 // Run the App
 window.addEventListener('load', ()=>{

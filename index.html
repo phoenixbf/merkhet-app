@@ -54,10 +54,13 @@
 
     <!-- Time Slider -->
     <div class="mkhetTimeSliderContainer">
-        <div class="atonKeyword">Time: <b><span id="tValue">0.0</span></b></div>
-        <input id="tRad" type="number" min="0" max="10.0" step="0.01" value="0.2" />
-        <br>
-        <input id='tSlider' type='range' min='0.0' max='60.0' step='0.05' >
+        <div id="blockRecord">
+            <div class="tabRecordsGroup" id="recTabs"></div>
+            <div class="atonKeyword">Time: <b><span id="tValue">0.0</span></b></div>
+            <!-- <input id="tRad" type="number" min="0" max="10.0" step="0.01" value="0.2" /> -->
+            <br>
+            <input id='tSlider' type='range' min='0.0' max='60.0' step='0.05' style="width: 90%;">
+        </div>
     </div>
 
 	<!-- Bottom Toolbar -->

@@ -7,6 +7,7 @@ UI.init = ()=>{
     ATON.FE.uiAddButtonFullScreen("idTopToolbar");
 
     ATON.FE.uiAddButton("idTopToolbar", "assets/i-records.png", UI.popupRecords );
+	ATON.FE.uiAddButton("idTopToolbar", "assets/i-process.png", UI.popupProcess );
 
 	ATON.FE.uiAddButtonNav("idTopToolbar");
     ATON.FE.uiAddButtonVR("idTopToolbar");
@@ -47,7 +48,6 @@ UI.popupRecords = ()=>{
     htmlcontent += "<datalist id='idRList'></datalist><br>";
 
 	htmlcontent += "<div id='rLoad' class='atonBTN atonBTN-green atonBTN-horizontal'><img src='"+ATON.FE.PATH_RES_ICONS+"db.png'>LOAD</div>";
-	htmlcontent += "<div id='rComputeFoc' class='atonBTN atonBTN-red atonBTN-horizontal'><img src='"+ATON.FE.PATH_RES_ICONS+"lp.png'>Compute Focal Points</div>";
 
     if ( !ATON.FE.popupShow(htmlcontent) ) return;
 
@@ -66,24 +66,23 @@ UI.popupRecords = ()=>{
 		if (rid.endsWith(".json")){
 			APP.loadProcessedData(APP.MKHET_API+"r/"+ APP._mksid +"/"+rid);
 			ATON.FE.popupClose();
-
 			return;
 		}
 
-		let R = new APP.Record(rid);
-		R.loadViaAPI(()=>{
-			console.log(R._tRangeMin+","+R._tRangeMax);
-
-			$("#tSlider").attr("min", R._tRangeMin);
-			$("#tSlider").attr("max", R._tRangeMax);
-
-		});
-
-		APP._records[rid] = R;
-		APP._currRID = rid;
+		APP.loadRecord(rid);
         
         ATON.FE.popupClose();
     });
+};
+
+
+UI.popupProcess = ()=>{
+    let htmlcontent = "<div class='atonPopupTitle'>Process</div>";
+
+	htmlcontent += "Volumetrically compute focal-points via voxel-based valoume for all records loaded<br>"
+	htmlcontent += "<div id='rComputeFoc' class='atonBTN atonBTN-red atonBTN-horizontal'><img src='"+ATON.FE.PATH_RES_ICONS+"lp.png'>Compute Focal Points</div>";
+
+    if ( !ATON.FE.popupShow(htmlcontent) ) return;
 
 	$("#rComputeFoc").click(()=>{
 		APP.Processor.computeFocalPointsForLoadedRecords();

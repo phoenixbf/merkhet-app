@@ -15,6 +15,8 @@ constructor(rid){
     this._tRangeMin = undefined;
     this._tRangeMax = undefined;
     this._tRangeD   = 0.0;
+
+    this._color = APP.recColors[ Object.keys(APP._records).length % APP.recColors.length ];
 }
 
 clear(){
@@ -44,7 +46,12 @@ generateFromCSVdata(data){
     let values;
 
     let path = [];
-    
+
+    let matMark = APP.matSpriteMark.clone();
+    matMark.color = this._color;
+
+    let matLine = APP.matDirection.clone();
+    matLine.color = this._color;
 
     for (let m=1; m<num; m++){
         let M = rows[m];
@@ -80,7 +87,7 @@ generateFromCSVdata(data){
             K.userData.fov  = fov;
 
             // 3D Representation
-            let mark = APP.mark.clone();            
+            let mark = new THREE.Sprite(matMark);            
             K.add(mark);
 
             if (APP._bPano){
@@ -113,9 +120,8 @@ generateFromCSVdata(data){
                 K.add(mfov);
 */
 
-
                 let gline = new THREE.BufferGeometry().setFromPoints([APP._vZero, new THREE.Vector3(dx, dy, dz)]);
-                K.add( new THREE.Line( gline , APP.matDirection) );
+                K.add( new THREE.Line( gline , matLine) );
             }
 
 
