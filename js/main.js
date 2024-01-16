@@ -83,7 +83,10 @@ APP.setup = ()=>{
 
 	let procData = APP.params.get("p");
 	if (procData) APP.loadProcessedData(APP.MKHET_API+"r/"+ APP._mksid +"/"+procData);
+
+	APP._hoverMark = undefined;
 };
+
 
 APP.setupAssets = ()=>{
 	APP.matSpriteMark = new THREE.SpriteMaterial({ 
@@ -110,7 +113,7 @@ APP.setupAssets = ()=>{
 		depthWrite: false, 
 		depthTest: false,
 		
-		blending: THREE.AdditiveBlending,
+		//blending: THREE.AdditiveBlending,
 		toneMapped: false
 	});
 
@@ -148,6 +151,31 @@ APP.setupAssets = ()=>{
         //flatShading: true
 		toneMapped: false
     });
+
+	// Heat Gradient
+	APP.heatGradientColors = []; // G to R
+
+	for (let i=0; i<32; i++){
+		let t = parseFloat(i/32.0);
+
+		let col = new THREE.Color();
+		col.r = 2.0 * t;
+		col.g = 2.0 * (1.0 - t);
+		col.b = 0.0;
+
+		if (col.r > 1.0) col.r = 1.0;
+		if (col.g > 1.0) col.g = 1.0;
+
+		APP.heatGradientColors.push(col);
+	}
+};
+
+APP.getHeatColor = (t)=>{
+	if (t<0.0) t = 0.0;
+	if (t>1.0) t = 1.0;
+
+	let i = parseInt(t*31);
+	return APP.heatGradientColors[i];
 };
 
 APP.setPanoramicMode = (b)=>{
@@ -203,6 +231,7 @@ APP.setActiveRecord = (rid)=>{
 	}
 
 	APP._currRID = rid;
+	APP._hoverMark = undefined;
 
 	$("#tSlider").attr("min", R._tRangeMin);
 	$("#tSlider").attr("max", R._tRangeMax);
@@ -228,11 +257,7 @@ APP.loadRecord = (rid)=>{
 		$("#tSlider").attr("max", R._tRangeMax);
 		$("#tSlider").val(R._tRangeMin);
 
-		$("#recTabs").append("<div class='tabRecord' id='tabrec-"+rid+"' style='background-color: "+strcol+"'>"+rid+"</div>");
-
-		$("#tabrec-"+rid).click(()=>{
-			APP.setActiveRecord(rid);
-		});
+		$("#recTabs").append("<div id='tabrec-"+rid+"' class='tabRecord' style='background-color: "+strcol+"' onclick=\"APP.setActiveRecord('"+rid+"')\">"+rid+"</div>");
 
 		APP._records[rid] = R;
 
@@ -245,6 +270,24 @@ APP.setupEvents = ()=>{
 	ATON.on("KeyPress", (k)=>{
 		//if (k==='ArrowRight') 
         //if (k==='ArrowLeft') 
+	});
+
+	ATON.on("Tap", (e)=>{
+		if (APP._hoverMark){
+			let kd = APP._hoverMark.userData;
+			let T = new THREE.Vector3();
+			T.set(
+				APP._hoverMark.position.x + kd.dir[0],
+				APP._hoverMark.position.y + kd.dir[1],
+				APP._hoverMark.position.z + kd.dir[2], 
+			);
+			
+			let pov = new ATON.POV().setPosition(APP._hoverMark.position).setTarget(T);
+
+			//console.log(pov)
+
+			ATON.Nav.requestPOV(pov, 0.3);
+		}
 	});
 
 	ATON.on("SceneJSONLoaded", sid =>{
@@ -344,7 +387,7 @@ APP.loadProcessedData = (path)=>{
 				transparent: true,
 				opacity: o,
 				
-				color: maxcolor.lerp(ATON.MatHub.colors.green, dp),
+				color: APP.getHeatColor(1.0 - dp), //maxcolor.lerp(ATON.MatHub.colors.green, dp),
 				depthWrite: false, 
 				//depthTest: false
 				

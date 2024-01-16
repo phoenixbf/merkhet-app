@@ -37,6 +37,7 @@ getCurrentMark(){
 
 generateFromCSVdata(data){
     this.node = ATON.createUINode(this.rid);
+    let self = this;
 
     this.marks = ATON.createUINode();
     this.marks.attachTo(this.node);
@@ -87,7 +88,8 @@ generateFromCSVdata(data){
             K.userData.fov  = fov;
 
             // 3D Representation
-            let mark = new THREE.Sprite(matMark);            
+            let mark = new THREE.Sprite(matMark);
+            //mark.raycast = APP.VOID_CAST;
             K.add(mark);
 
             if (APP._bPano){
@@ -102,10 +104,12 @@ generateFromCSVdata(data){
             else {
                 mark.scale.setScalar(APP.MARK_SCALE);
                 K.position.set(px,py,pz);
+
+                // Trigger
 /*
                 let gs = new THREE.Mesh( ATON.Utils.geomUnitCube, ATON.MatHub.materials.fullyTransparent);
-                gs.scale.set(0.3,0.3,0.3);
-                mark.add(gs);
+                gs.scale.setScalar(0.3);
+                K.add(gs);
 */
 
 /*
@@ -120,13 +124,22 @@ generateFromCSVdata(data){
                 K.add(mfov);
 */
 
-                let gline = new THREE.BufferGeometry().setFromPoints([APP._vZero, new THREE.Vector3(dx, dy, dz)]);
-                K.add( new THREE.Line( gline , APP.matDirection) );
+                let gDir = new THREE.BufferGeometry().setFromPoints([APP._vZero, new THREE.Vector3(dx, dy, dz)]);
+                let dLine = new THREE.Line( gDir, APP.matDirection);
+                dLine.raycast = APP.VOID_CAST;
+                K.add( dLine );
             }
 
 
-            K.enablePicking().setOnHover(()=>{
-                //console.log(m)
+            K.enablePicking();
+            K.setOnHover(()=>{
+                K.scale.setScalar(1.5);
+                APP._hoverMark = K;
+
+            });
+            K.setOnLeave(()=>{
+                K.scale.setScalar(1);
+                APP._hoverMark = undefined;
             });
 
             this.marks.add(K);
@@ -140,6 +153,8 @@ generateFromCSVdata(data){
     // Path
     let gPath = new THREE.BufferGeometry().setFromPoints( path );
     let mPath = new THREE.Line( gPath, matLine );
+    mPath.raycast = APP.VOID_CAST;
+
     this.node.add(mPath);
 
     this._tRangeD = (this._tRangeMax - this._tRangeMin);

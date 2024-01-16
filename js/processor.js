@@ -86,20 +86,17 @@ Processor.computeFocalPointsForRecord = (R)=>{
 };
 
 Processor.computeFocalPointsForLoadedRecords = ()=>{
-	Processor._maxFocHits = 0;
-
     let vFoc = Processor._volumeFocalPoints;
 
 	vFoc.clear();
 	APP.gFPoints.clear();
+    Processor._maxFocHits = 0;
 
 	for (let r in APP._records){
 		Processor.computeFocalPointsForRecord(APP._records[r]);
 	}
 
 	// Populate foc-points
-	let vs = vFoc._voxelsize.x;
-
 	let focmats = [];
 
 	let minhits = parseInt( Processor._maxFocHits * 0.2 );
@@ -109,11 +106,13 @@ Processor.computeFocalPointsForLoadedRecords = ()=>{
 		let p = (i-minhits)/(Processor._maxFocHits-minhits);
 
         let mat = APP.matSpriteFocal.clone();
-        mat.color   = new THREE.Color(p, 1.0-p, 0)
-        mat.opacity = p;
+        mat.color   = APP.getHeatColor(p);
+        mat.opacity = p*0.8;
 
 		focmats[i] = mat;
 	}
+
+    let vs = vFoc._voxelsize.x;
 
 	vFoc.forEachVoxel((v)=>{
 		let mi = v.data.hits;
@@ -124,11 +123,13 @@ Processor.computeFocalPointsForLoadedRecords = ()=>{
 		H.raycast = APP.VOID_CAST;
 
 		mi = (mi-minhits)+1;
+        mi *= 0.1;
 
 		H.position.copy(v.loc);
-		let s = vs * 4.0 * mi;
+		//let s = vs * 4.0 * mi;
+        let s = vs * 8.0;
 
-        if (APP._bPano) s = vs * 150.0;
+        if (APP._bPano) s *= 100.0;
 
 		H.scale.set(s,s,s);
 
