@@ -198,6 +198,10 @@ APP.setActiveRecord = (rid)=>{
 
 	if (!R) return;
 
+	for (let r in APP._records){
+		if (r!==rid) APP._records[r].node.hide();
+	}
+
 	APP._currRID = rid;
 
 	$("#tSlider").attr("min", R._tRangeMin);

@@ -50,7 +50,7 @@ generateFromCSVdata(data){
     let matMark = APP.matSpriteMark.clone();
     matMark.color = this._color;
 
-    let matLine = APP.matDirection.clone();
+    let matLine = APP.matPath.clone();
     matLine.color = this._color;
 
     for (let m=1; m<num; m++){
@@ -121,7 +121,7 @@ generateFromCSVdata(data){
 */
 
                 let gline = new THREE.BufferGeometry().setFromPoints([APP._vZero, new THREE.Vector3(dx, dy, dz)]);
-                K.add( new THREE.Line( gline , matLine) );
+                K.add( new THREE.Line( gline , APP.matDirection) );
             }
 
 
@@ -139,7 +139,7 @@ generateFromCSVdata(data){
 
     // Path
     let gPath = new THREE.BufferGeometry().setFromPoints( path );
-    let mPath = new THREE.Line( gPath, APP.matPath );
+    let mPath = new THREE.Line( gPath, matLine );
     this.node.add(mPath);
 
     this._tRangeD = (this._tRangeMax - this._tRangeMin);
