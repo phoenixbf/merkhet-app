@@ -10,18 +10,66 @@ constructor(rid){
 
     this._filterTime = 0.0;
     this._filterTRad = 0.2;
-    this._currMarkInd = 0;
 
     this._tRangeMin = undefined;
     this._tRangeMax = undefined;
     this._tRangeD   = 0.0;
 
     this._color = APP.recColors[ Object.keys(APP._records).length % APP.recColors.length ];
+
+    this._currMarkInd = 0;
+    //this._marks = [];
+    //this.setupCursor();
+}
+
+setupCursor(){
+    let matMark = APP.matSpriteMark.clone();
+    matMark.color = this._color;
+
+    let matLine = APP.matPath.clone();
+    matLine.color = this._color;
+
+    this._cursor = ATON.createUINode("cur-"+this.rid);
+
+    // 3D Representation
+    let mark = new THREE.Sprite(matMark);
+    //mark.raycast = APP.VOID_CAST;
+    this._cursor.add(mark);
+
+    if (APP._bPano){
+        mark.scale.setScalar(APP.MARK_SCALE * 50.0);
+    }
+    else {
+        mark.scale.setScalar(APP.MARK_SCALE);
+        //this._cursor.position.set(px,py,pz);
+
+        let conesize = 5.0;
+        let gfov = new THREE.ConeGeometry( 0.7*conesize, conesize, 10, 1, true );
+        gfov.rotateX(Math.PI*0.5);
+        gfov.translate(0,0,-0.5*conesize);
+
+        let mfov = new THREE.Mesh( gfov, APP.matFOV );
+        mfov.lookAt(-dx, -dy, -dz);
+
+        this._cursor.add(mfov);
+    }
+
+    this._cursor.enablePicking();
+
+    this._cursor.setOnHover(()=>{
+        this._cursor.scale.setScalar(1.5);
+        APP._hoverMark = K;
+
+    });
+    this._cursor.setOnLeave(()=>{
+        this._cursor.scale.setScalar(1);
+        APP._hoverMark = undefined;
+    });
 }
 
 clear(){
-    this.marks.clear();
-    this.node.clear();
+    this.removeChildren();
+    this.node.removeChildren();
 }
 
 getMark(i){
@@ -54,6 +102,9 @@ generateFromCSVdata(data){
     let matLine = APP.matPath.clone();
     matLine.color = this._color;
 
+    let matfov = APP.matFOV.clone();
+    matfov.color = this._color;
+
     for (let m=1; m<num; m++){
         let M = rows[m];
 
@@ -79,6 +130,18 @@ generateFromCSVdata(data){
             let K = ATON.createUINode(this.rid+"-m"+m);
 
             path.push(K.position);
+/*
+            let MD = {
+                time: t,
+                nav: nav,
+                pos: new THREE.Vector3(px,py,pz),
+                dir: new THREE.Vector3(dx,dy,dz),
+                fov: fov
+            };
+            this._marks.push(MD);
+
+            path.push(MD.pos);
+*/
 
             // UserData
             K.userData.time = t;
@@ -112,17 +175,18 @@ generateFromCSVdata(data){
                 K.add(gs);
 */
 
-/*
+
                 let conesize = 5.0;
                 let gfov = new THREE.ConeGeometry( 0.7*conesize, conesize, 10, 1, true );
                 gfov.rotateX(Math.PI*0.5);
                 gfov.translate(0,0,-0.5*conesize);
     
-                let mfov = new THREE.Mesh( gfov, APP.matFOV );
+                let mfov = new THREE.Mesh( gfov, matfov );
                 mfov.lookAt(-dx, -dy, -dz);
+                mfov.raycast = APP.VOID_CAST;
 
                 K.add(mfov);
-*/
+
 
                 let gDir = new THREE.BufferGeometry().setFromPoints([APP._vZero, new THREE.Vector3(dx, dy, dz)]);
                 let dLine = new THREE.Line( gDir, APP.matDirection);
@@ -143,6 +207,8 @@ generateFromCSVdata(data){
             });
 
             this.marks.add(K);
+
+            K.hide();
 
             this._tRangeMax = t;
         }

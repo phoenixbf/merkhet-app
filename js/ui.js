@@ -24,7 +24,7 @@ UI.init = ()=>{
 		$("#tValue").html(t);
 
 		let R = APP.getActiveRecord();
-		if (!APP._bPano) ATON.Nav.requestPOVbyNode( R.getCurrentMark() );
+		//if (!APP._bPano) ATON.Nav.requestPOVbyNode( R.getCurrentMark() );
 
 		ATON.Photon.fireEvent("MKH_Time", t);
 	});

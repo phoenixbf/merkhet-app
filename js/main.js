@@ -146,7 +146,8 @@ APP.setupAssets = ()=>{
 
 		transparent: true,
         depthWrite: false,
-        opacity: 0.1, 
+        opacity: 0.1,
+		side: THREE.DoubleSide,
         //depthTest: false
         //flatShading: true
 		toneMapped: false

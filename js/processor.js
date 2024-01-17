@@ -127,7 +127,7 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 
 		H.position.copy(v.loc);
 		//let s = vs * 4.0 * mi;
-        let s = vs * 8.0;
+        let s = vs * 6.0;
 
         if (APP._bPano) s *= 10.0;
 
