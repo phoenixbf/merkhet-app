@@ -23,7 +23,7 @@ Processor.setupVolumesBounds = (bb)=>{
     Processor._bvBB = true;
 };
 
-Processor.computeFocalPointsForRecord = (R)=>{
+Processor.computeFocalFixationsForRecord = (R)=>{
 	if (!R) return;
 
 	let marks = R.marks.children;
@@ -85,21 +85,21 @@ Processor.computeFocalPointsForRecord = (R)=>{
 	}
 };
 
-Processor.computeFocalPointsForLoadedRecords = ()=>{
+Processor.computeFocalFixationsForLoadedRecords = ()=>{
     let vFoc = Processor._volumeFocalPoints;
 
 	vFoc.clear();
-	APP.gFPoints.clear();
+	APP.gFPoints.removeChildren();
     Processor._maxFocHits = 0;
 
 	for (let r in APP._records){
-		Processor.computeFocalPointsForRecord(APP._records[r]);
+		Processor.computeFocalFixationsForRecord(APP._records[r]);
 	}
 
 	// Populate foc-points
 	let focmats = [];
 
-	let minhits = parseInt( Processor._maxFocHits * 0.2 );
+	let minhits = parseInt( Processor._maxFocHits * 0.1 ); // 0.2
 	console.log(minhits, Processor._maxFocHits);
 
 	for (let i=minhits; i<=Processor._maxFocHits; i++){
@@ -107,7 +107,7 @@ Processor.computeFocalPointsForLoadedRecords = ()=>{
 
         let mat = APP.matSpriteFocal.clone();
         mat.color   = APP.getHeatColor(p);
-        mat.opacity = p*0.8;
+        mat.opacity = 0.5; //p*0.8;
 
 		focmats[i] = mat;
 	}
@@ -129,7 +129,7 @@ Processor.computeFocalPointsForLoadedRecords = ()=>{
 		//let s = vs * 4.0 * mi;
         let s = vs * 8.0;
 
-        if (APP._bPano) s *= 100.0;
+        if (APP._bPano) s *= 10.0;
 
 		H.scale.set(s,s,s);
 

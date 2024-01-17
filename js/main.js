@@ -334,7 +334,7 @@ APP.update = ()=>{
 
 APP.loadProcessedData = (path)=>{
 	$.getJSON( path, ( data )=>{
-        console.log("Loaded occupancy data: "+path);
+        console.log("Loaded density data: "+path);
 
 		let points = data.points;
 		let scale  = data.voxelsize * 4.0; // * 8.0;
@@ -356,6 +356,8 @@ APP.loadProcessedData = (path)=>{
 			let py = P.y;
 			let pz = P.z;
 			let d  = P.density;
+
+			if (py === undefined) py = 0.0;
 
 			let dp = parseFloat(p) / parseFloat(maxcount);
 			//console.log(dp)

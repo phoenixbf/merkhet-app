@@ -6,7 +6,7 @@ constructor(){
     this._bb = new THREE.Box3();
     this._bbSize = new THREE.Vector3();
 
-    this._res = 128;
+    this._res = 256;
     this._voxelsize = new THREE.Vector3();
 }
 

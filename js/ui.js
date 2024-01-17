@@ -77,15 +77,15 @@ UI.popupRecords = ()=>{
 
 
 UI.popupProcess = ()=>{
-    let htmlcontent = "<div class='atonPopupTitle'>Process</div>";
+    let htmlcontent = "<div class='atonPopupTitle'>Compute</div>";
 
-	htmlcontent += "Volumetrically compute focal-points via voxel-based valoume for all records loaded<br>"
-	htmlcontent += "<div id='rComputeFoc' class='atonBTN atonBTN-red atonBTN-horizontal'><img src='"+ATON.FE.PATH_RES_ICONS+"lp.png'>Compute Focal Points</div>";
+	htmlcontent += "Compute focal-fixations via voxel-based volume for all records loaded<br>"
+	htmlcontent += "<div id='rComputeFoc' class='atonBTN atonBTN-red atonBTN-horizontal'><img src='"+ATON.FE.PATH_RES_ICONS+"lp.png'>Compute Focal Fixations</div>";
 
     if ( !ATON.FE.popupShow(htmlcontent) ) return;
 
 	$("#rComputeFoc").click(()=>{
-		APP.Processor.computeFocalPointsForLoadedRecords();
+		APP.Processor.computeFocalFixationsForLoadedRecords();
 		ATON.FE.popupClose();
 	});
 };
