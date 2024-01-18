@@ -66,17 +66,24 @@ Processor.computeFocalFixationsForRecord = (R)=>{
 
             if (R){
                 Processor._volumeFocalPoints.setData(R.p, (d)=>{
+                    // First hit
                     if (!d) return {
                         hits: 1,
-                        //n: R.n
+                        n: new THREE.Vector3(data.dir[0],data.dir[1],data.dir[2])
                     };
 
+                    // Non-empty voxel (Data in d)
                     let h = d.hits + 1;
                     if (h > Processor._maxFocHits) Processor._maxFocHits = h;
 
+                    let nor = d.n;
+                    nor.x += data.dir[0];
+                    nor.y += data.dir[1];
+                    nor.z += data.dir[2];
+
                     return { 
                         hits: h,
-                        //n: R.n
+                        n: nor
                     };
                 });
             }
@@ -117,6 +124,9 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 	vFoc.forEachVoxel((v)=>{
 		let mi = v.data.hits;
 
+        let nor = v.data.n;
+        nor = nor.multiplyScalar(1.0/mi);
+
 		if (mi < minhits) return;
 
 		let H = new THREE.Sprite( focmats[mi] );
@@ -134,6 +144,12 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 		H.scale.set(s,s,s);
 
 		APP.gFPoints.add(H);
+
+        //Norm
+        let gNorm = new THREE.BufferGeometry().setFromPoints([v.loc, new THREE.Vector3(v.loc.x-nor.x, v.loc.y-nor.y, v.loc.z-nor.z)]);
+        let nView = new THREE.Line( gNorm, APP.matDirection);
+        nView.raycast = APP.VOID_CAST;
+        APP.gFPoints.add(nView);
 	});
 };
 
