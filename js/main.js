@@ -111,7 +111,7 @@ APP.setupAssets = ()=>{
 		
 		color: ATON.MatHub.colors.green,
 		depthWrite: false, 
-		depthTest: false,
+		//depthTest: false,
 		
 		//blending: THREE.AdditiveBlending,
 		toneMapped: false

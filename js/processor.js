@@ -114,7 +114,7 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 
         let mat = APP.matSpriteFocal.clone();
         mat.color   = APP.getHeatColor(p);
-        mat.opacity = 0.5; //p*0.8;
+        mat.opacity = 0.1 + (p*0.6);
 
 		focmats[i] = mat;
 	}
@@ -125,7 +125,7 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 		let mi = v.data.hits;
 
         let nor = v.data.n;
-        if (!APP._bPano) nor = nor.multiplyScalar(1.0/mi);
+        if (nor) nor = nor.multiplyScalar(1.0/mi);
 
 		if (mi < minhits) return;
 
@@ -136,6 +136,12 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
         mi *= 0.1;
 
 		H.position.copy(v.loc);
+        if (nor){
+            let of = vs * 0.8;
+            H.position.x -= nor.x * of;
+            H.position.y -= nor.y * of;
+            H.position.z -= nor.z * of;
+        }
 		//let s = vs * 4.0 * mi;
         let s = vs * 6.0;
 
@@ -146,12 +152,14 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 		APP.gFPoints.add(H);
 
         //Norm
+/*
         if (APP._bPano) return;
 
         let gNorm = new THREE.BufferGeometry().setFromPoints([v.loc, new THREE.Vector3(v.loc.x-nor.x, v.loc.y-nor.y, v.loc.z-nor.z)]);
         let nView = new THREE.Line( gNorm, APP.matDirection);
         nView.raycast = APP.VOID_CAST;
         APP.gFPoints.add(nView);
+*/
 	});
 };
 
