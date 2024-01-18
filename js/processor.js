@@ -125,7 +125,7 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 		let mi = v.data.hits;
 
         let nor = v.data.n;
-        nor = nor.multiplyScalar(1.0/mi);
+        if (!APP._bPano) nor = nor.multiplyScalar(1.0/mi);
 
 		if (mi < minhits) return;
 
@@ -146,6 +146,8 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 		APP.gFPoints.add(H);
 
         //Norm
+        if (APP._bPano) return;
+
         let gNorm = new THREE.BufferGeometry().setFromPoints([v.loc, new THREE.Vector3(v.loc.x-nor.x, v.loc.y-nor.y, v.loc.z-nor.z)]);
         let nView = new THREE.Line( gNorm, APP.matDirection);
         nView.raycast = APP.VOID_CAST;
