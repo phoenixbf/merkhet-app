@@ -48,6 +48,8 @@ APP.setup = ()=>{
 
 	ATON.FE.addBasicLoaderEvents(); // Add basic events handling
 
+	//ATON.SUI.enableSemIcons();
+
 	APP.UI.init();
 	APP.Processor.init();
 
@@ -288,8 +290,33 @@ APP.setActiveRecord = (rid)=>{
 	$("#tSlider").attr("min", R._tRangeMin);
 	$("#tSlider").attr("max", R._tRangeMax);
 	$("#tSlider").val(R._tRangeMin);
+	$("#rBookmarks").html("");
 
 	R.node.show();
+
+	APP.rewindTimeForActiveRecord();
+
+	// Semantic
+	let numMarks = R.marks.children.length;
+	R.setSemStorageID( APP.getRecordSemStorageID(rid) );
+	R.getSemStorage((s)=>{
+		//let bopts = "";
+		for (let b in s.bookmarks){
+			let O = s.bookmarks[b];
+			let i = parseInt(b);
+
+			R.getOrCreateBookmark( i );
+/*
+			let vv = (i/numMarks) * (R._tRangeMax - R._tRangeMin);
+			vv += R._tRangeMin;
+
+			bopts += "<option value='"+parseInt(vv)+"' label='"+i+"'></option>";
+*/
+		}
+
+		//$("#rBookmarks").html(bopts);
+	});
+
 	console.log("Active Record: "+rid);
 };
 
@@ -314,18 +341,6 @@ APP.loadRecord = (rid)=>{
 		APP._records[rid] = R;
 
 		APP.setActiveRecord(rid);
-
-		APP.rewindTimeForActiveRecord();
-
-		// Semantic
-		R.setSemStorageID( APP.getRecordSemStorageID(rid) );
-		R.getSemStorage((s)=>{
-			for (let b in s.bookmarks){
-				let O = s.bookmarks[b];
-
-				R.getOrCreateBookmark(parseInt(b));
-			}
-		});
 	});
 };
 
