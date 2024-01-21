@@ -16,6 +16,7 @@ UI.init = ()=>{
 
 	$("#tSlider").on("input change",()=>{
 		let t = parseFloat( $("#tSlider").val() );
+		let bCamLock = $("#idCamLock").is(':checked');
 
 		APP.setTime(t);
 
@@ -24,7 +25,11 @@ UI.init = ()=>{
 		$("#tValue").html(t);
 
 		let R = APP.getActiveRecord();
-		//if (!APP._bPano) ATON.Nav.requestPOVbyNode( R.getCurrentMark() );
+
+		if (bCamLock){
+			let M = R.getCurrentMark();
+			ATON.Nav.requestPOV( R.getPOVforMark(M), 0.1 );
+		}
 
 		ATON.Photon.fireEvent("MKH_Time", t);
 	});
@@ -116,16 +121,7 @@ UI.popupMark = (M)=>{
 	});
 
 	$("#markPOV").click(()=>{
-		let T = new THREE.Vector3();
-		T.set(
-			M.position.x + kd.dir[0],
-			M.position.y + kd.dir[1],
-			M.position.z + kd.dir[2], 
-		);
-		
-		let pov = new ATON.POV();
-		if (!APP._bPano) pov.setPosition(M.position);
-		pov.setTarget(T);
+		let pov = R.getPOVforMark(M);
 
 		ATON.Nav.requestPOV(pov, 0.3);
 		//ATON.FE.popupClose();

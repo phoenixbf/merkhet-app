@@ -174,12 +174,13 @@ APP.setupAssets = ()=>{
 	APP.recSemMats = [];
 	for (let c=0; c<APP.recColors.length; c++){
 		let col = APP.recColors[c];
-/*
+
 		let mat = ATON.MatHub.materials.defUI.clone();
 		mat.uniforms.tint.value    = col;
 		mat.uniforms.opacity.value = 0.3;
-*/
-		let mat = new THREE.MeshPhysicalMaterial({
+
+/*
+	let mat = new THREE.MeshPhysicalMaterial({
 			color: col,
 			roughness: 0.3,
 			metalness: 0,
@@ -190,15 +191,15 @@ APP.setupAssets = ()=>{
 			transparent: true,
 			depthWrite: false
 		});
-
+*/
 		APP.recSemMats.push(mat);
 	}
-/*
+
 	APP.recSemMatHL = ATON.MatHub.materials.defUI.clone();
 	APP.recSemMatHL.uniforms.tint.value = ATON.MatHub.colors.white;
 	APP.recSemMatHL.uniforms.opacity.value = 0.3;
-*/
 
+/*
 	APP.recSemMatHL = new THREE.MeshPhysicalMaterial({
 		color: ATON.MatHub.colors.white,
 		roughness: 0.3,
@@ -210,6 +211,7 @@ APP.setupAssets = ()=>{
 		transparent: true,
 		depthWrite: false
 	});
+*/
 };
 
 APP.getHeatColor = (t)=>{

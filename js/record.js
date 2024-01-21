@@ -303,8 +303,25 @@ filter(){
         }
         else M.hide();
     }
-
 }
+
+getPOVforMark = (M)=>{
+    let kd = M.userData;
+    if (!kd) return undefined;
+
+    let T = new THREE.Vector3();
+    T.set(
+        M.position.x + kd.dir[0],
+        M.position.y + kd.dir[1],
+        M.position.z + kd.dir[2], 
+    );
+    
+    let pov = new ATON.POV();
+    if (!APP._bPano) pov.setPosition(M.position);
+    pov.setTarget(T);
+
+    return pov;
+};
 
 getOrCreateBookmark(i){
     let bid = "bm-"+this.rid+"-"+i;
@@ -314,7 +331,11 @@ getOrCreateBookmark(i){
 
     let M = this.getMark(i);
 
-    B = ATON.SemFactory.createSphere(bid, M.position, 0.3);
+    let r = 0.2;
+    if (APP._bPano) r *= 20.0;
+
+    B = ATON.SemFactory.createSphere(bid, M.position, r);
+
     B.attachTo(this._gBookmarks);
 
     B.setDefaultAndHighlightMaterials(this._matSem, APP.recSemMatHL);
