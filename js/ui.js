@@ -90,4 +90,56 @@ UI.popupProcess = ()=>{
 	});
 };
 
+UI.popupMark = (M)=>{
+	let R = APP.getActiveRecord();
+	let kd = M.userData;
+	let m = R.getMarkIndex(M);
+
+    let htmlcontent = "<div class='atonPopupTitle'>Mark #"+m+" (Timestamp "+kd.time+")</div>";
+
+	htmlcontent += "<div id='markPOV' class='atonBTN atonBTN-horizontal'><img src='"+ATON.FE.PATH_RES_ICONS+"pov.png'>View</div>";
+
+	htmlcontent += "Annotation for this mark:<br>";
+	htmlcontent += "<textarea id='idMarkAnn' rows='4' cols='50'></textarea>";
+	htmlcontent += "<div id='btnMAnn' class='atonBTN atonBTN-green atonBTN-horizontal'><img src='"+ATON.FE.PATH_RES_ICONS+"note.png'>Save</div>";
+
+    if ( !ATON.FE.popupShow(htmlcontent) ) return;
+
+	R.getSemStorage((s)=>{
+		if (!s.bookmarks) return;
+
+		let B = s.bookmarks[m];
+		if (!B) return;
+		if (!B.content) return;
+
+		$("#idMarkAnn").val(B.content);
+	});
+
+	$("#markPOV").click(()=>{
+		let T = new THREE.Vector3();
+		T.set(
+			M.position.x + kd.dir[0],
+			M.position.y + kd.dir[1],
+			M.position.z + kd.dir[2], 
+		);
+		
+		let pov = new ATON.POV();
+		if (!APP._bPano) pov.setPosition(M.position);
+		pov.setTarget(T);
+
+		ATON.Nav.requestPOV(pov, 0.3);
+		//ATON.FE.popupClose();
+	});
+
+	$("#btnMAnn").click(()=>{
+		let content = $("#idMarkAnn").val();
+		content.trim();
+
+		if (content.length > 1){
+			R.saveBookmark(m, content);
+			ATON.FE.popupClose();
+		}
+	});
+};
+
 export default UI;

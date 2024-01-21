@@ -15,11 +15,24 @@ constructor(rid){
     this._tRangeMax = undefined;
     this._tRangeD   = 0.0;
 
-    this._color = APP.recColors[ Object.keys(APP._records).length % APP.recColors.length ];
+    let numCurrentRecs = Object.keys(APP._records).length;
+    this._color  = APP.recColors[ numCurrentRecs % APP.recColors.length ];
+    this._matSem = APP.recSemMats[ numCurrentRecs % APP.recSemMats.length ];
 
     this._currMarkInd = 0;
     //this._marks = [];
     //this.setupCursor();
+
+    this._gBookmarks = undefined;
+    this._semStorageID = rid;
+}
+
+setSemStorageID(ss){
+    this._semStorageID = ss;
+};
+
+getSemStorage( f ){
+    APP.getStorage( this._semStorageID ).then( f );
 }
 
 setupCursor(){
@@ -83,12 +96,27 @@ getCurrentMark(){
     return this.getMark(this._currMarkInd);
 }
 
+getMarkIndex(M){
+    if (M.userData.i === undefined) return -1;
+    return M.userData.i;
+/*
+    let num = this.marks.children.length;
+    for (let i=0; i<num; i++){
+        if (this.marks.children[i]===M) return i;
+    }
+    return -1;
+*/
+}
+
 generateFromCSVdata(data){
     this.node = ATON.createUINode(this.rid);
     let self = this;
 
     this.marks = ATON.createUINode();
     this.marks.attachTo(this.node);
+
+    this._gBookmarks = ATON.createUINode();
+    this._gBookmarks.attachTo(this.node);
 
     let rows = data.split("\n");
     let num = rows.length;
@@ -129,7 +157,7 @@ generateFromCSVdata(data){
 
             let K = ATON.createUINode(this.rid+"-m"+m);
 
-            path.push(K.position);
+            
 /*
             let MD = {
                 time: t,
@@ -144,11 +172,14 @@ generateFromCSVdata(data){
 */
 
             // UserData
+            K.userData.i    = path.length;
             K.userData.time = t;
             K.userData.nav  = nav;
             K.userData.pos  = [px,py,pz];
             K.userData.dir  = [dx,dy,dz];
             K.userData.fov  = fov;
+
+            path.push(K.position);
 
             // 3D Representation
             let mark = new THREE.Sprite(matMark);
@@ -218,6 +249,7 @@ generateFromCSVdata(data){
 
     // Path
     let gPath = new THREE.BufferGeometry().setFromPoints( path );
+    //let gPath = new THREE.LineGeometry().setFromPoints( path );
     let mPath = new THREE.Line( gPath, matLine );
     mPath.raycast = APP.VOID_CAST;
 
@@ -272,6 +304,39 @@ filter(){
         else M.hide();
     }
 
+}
+
+getOrCreateBookmark(i){
+    let bid = "bm-"+this.rid+"-"+i;
+
+    let B = ATON.getSemanticNode(bid);
+    if (B) return B;
+
+    let M = this.getMark(i);
+
+    B = ATON.SemFactory.createSphere(bid, M.position, 0.3);
+    B.attachTo(this._gBookmarks);
+
+    B.setDefaultAndHighlightMaterials(this._matSem, APP.recSemMatHL);
+    B.restoreDefaultMaterial();
+
+    B.userData.mark = M;
+
+    return B;
+}
+
+saveBookmark(i, content, audio){
+    if (!content) return;
+    if (content.length < 1) return; 
+
+    let B = this.getOrCreateBookmark(i);
+
+    let O = {};
+    O.bookmarks = {};
+    O.bookmarks[i] = {};
+    O.bookmarks[i].content = content;
+
+    APP.addToStorage( this._semStorageID, O ); //.then(...)
 }
 
 }

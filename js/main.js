@@ -22,12 +22,6 @@ APP.UI        = UI;
 APP.Processor = Processor;
 
 
-APP.recColors = [
-	new THREE.Color(0,0,1),
-	new THREE.Color(1,0,1),
-	new THREE.Color(0,1,1),
-];
-
 
 APP.getSceneMerkhetID = (sid)=>{
 	if (!sid) sid = ATON.SceneHub.currID;
@@ -43,7 +37,7 @@ APP.setup = ()=>{
 
 	APP._vZero = new THREE.Vector3(0,0,0);
 	
-	APP._panoScale = 100.0;
+	APP._panoScale = 50.0;
 	APP._bPano = false;
 	APP._bbPano = new THREE.Box3(
 		new THREE.Vector3(-APP._panoScale,-APP._panoScale,-APP._panoScale),
@@ -169,6 +163,53 @@ APP.setupAssets = ()=>{
 
 		APP.heatGradientColors.push(col);
 	}
+
+	// Records colors
+	APP.recColors = [
+		new THREE.Color(0,0,1),
+		new THREE.Color(1,0,1),
+		new THREE.Color(0,1,1),
+	];
+	
+	APP.recSemMats = [];
+	for (let c=0; c<APP.recColors.length; c++){
+		let col = APP.recColors[c];
+/*
+		let mat = ATON.MatHub.materials.defUI.clone();
+		mat.uniforms.tint.value    = col;
+		mat.uniforms.opacity.value = 0.3;
+*/
+		let mat = new THREE.MeshPhysicalMaterial({
+			color: col,
+			roughness: 0.3,
+			metalness: 0,
+			transmission: 1,
+			ior: 1.3,
+			thickness: 2.0,
+
+			transparent: true,
+			depthWrite: false
+		});
+
+		APP.recSemMats.push(mat);
+	}
+/*
+	APP.recSemMatHL = ATON.MatHub.materials.defUI.clone();
+	APP.recSemMatHL.uniforms.tint.value = ATON.MatHub.colors.white;
+	APP.recSemMatHL.uniforms.opacity.value = 0.3;
+*/
+
+	APP.recSemMatHL = new THREE.MeshPhysicalMaterial({
+		color: ATON.MatHub.colors.white,
+		roughness: 0.3,
+		metalness: 0,
+		transmission: 1,
+		ior: 1.3,
+		thickness: 2.0,
+
+		transparent: true,
+		depthWrite: false
+	});
 };
 
 APP.getHeatColor = (t)=>{
@@ -202,6 +243,14 @@ APP.setTime = (t)=>{
 		APP._records[r].filter();
 	}
 */
+};
+
+APP.rewindTimeForActiveRecord = ()=>{
+	let R = APP.getActiveRecord();
+	if (!R) return;
+
+	R._filterTime = R._tRangeMin;
+	R.filter();
 };
 
 APP.detectPanoramicScene = ()=>{
@@ -263,7 +312,24 @@ APP.loadRecord = (rid)=>{
 		APP._records[rid] = R;
 
 		APP.setActiveRecord(rid);
+
+		APP.rewindTimeForActiveRecord();
+
+		// Semantic
+		R.setSemStorageID( APP.getRecordSemStorageID(rid) );
+		R.getSemStorage((s)=>{
+			for (let b in s.bookmarks){
+				let O = s.bookmarks[b];
+
+				R.getOrCreateBookmark(parseInt(b));
+			}
+		});
 	});
+};
+
+APP.getRecordSemStorageID = (rid)=>{
+	if (!APP._mksid) return rid;
+	return APP._mksid+"_"+rid;
 };
 
 APP.setupEvents = ()=>{
@@ -275,20 +341,15 @@ APP.setupEvents = ()=>{
 
 	ATON.on("Tap", (e)=>{
 		if (APP._hoverMark){
-			let kd = APP._hoverMark.userData;
-			let T = new THREE.Vector3();
-			T.set(
-				APP._hoverMark.position.x + kd.dir[0],
-				APP._hoverMark.position.y + kd.dir[1],
-				APP._hoverMark.position.z + kd.dir[2], 
-			);
-			
-			let pov = new ATON.POV().setPosition(APP._hoverMark.position).setTarget(T);
-
-			//console.log(pov)
-
-			ATON.Nav.requestPOV(pov, 0.3);
+			APP.UI.popupMark(APP._hoverMark);
+			return;
 		}
+
+		let annMark = ATON.getHoveredSemanticNode();
+		if (annMark){
+			APP.UI.popupMark( annMark.userData.mark );
+		}
+
 	});
 
 	ATON.on("SceneJSONLoaded", sid =>{
@@ -314,7 +375,41 @@ APP.setupEvents = ()=>{
 		ATON.Nav.setOrbitControl();
 	});
 
+	ATON.EventHub.clearEventHandlers("SemanticNodeHover");
+    ATON.on("SemanticNodeHover", (semid)=>{
+        let S = ATON.getSemanticNode(semid);
+        if (S === undefined) return;
+
+		let mark = S.userData.mark;
+		if (!mark) return;
+
+		let m = mark.userData.i;
+
+        ATON.FE.showSemLabel("M #"+m+" (T:"+mark.userData.time+")");
+        ATON.FE._bSem = true;
+
+        S.highlight();
+        
+		//$('canvas').css({ cursor: 'crosshair' });
+        //if (ATON.SUI.gSemIcons) ATON.SUI.gSemIcons.hide();
+    });
+
+	ATON.EventHub.clearEventHandlers("SemanticNodeLeave");
+    ATON.on("SemanticNodeLeave", (semid)=>{
+        let S = ATON.getSemanticNode(semid);
+        if (S === undefined) return;
+
+        ATON.FE.hideSemLabel();
+        ATON.FE._bSem = false;
+
+        S.restoreDefaultMaterial();
+
+        //$('canvas').css({ cursor: 'grab' });
+        //if (ATON.SUI.gSemIcons) ATON.SUI.gSemIcons.show();
+    });
+
 	// Collaborative
+	//===========================================
 	ATON.Photon.on("MKH_Time", (t)=>{
 		//if (!APP._record) return;
 
