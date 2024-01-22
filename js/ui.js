@@ -96,8 +96,12 @@ UI.popupProcess = ()=>{
 };
 
 UI.popupMark = (M)=>{
+	if (!M) return;
+
 	let R = APP.getActiveRecord();
 	let kd = M.userData;
+	if (!kd) return;
+
 	let m = R.getMarkIndex(M);
 
     let htmlcontent = "<div class='atonPopupTitle'>Mark #"+m+" (Timestamp "+kd.time+")</div>";
