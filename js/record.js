@@ -23,7 +23,9 @@ constructor(rid){
     //this._marks = [];
     //this.setupCursor();
 
+    // Bookmarks / Annotations
     this._gBookmarks = undefined;
+    this._semAnnNodes  = {};
     this._semStorageID = rid;
 }
 
@@ -35,6 +37,12 @@ getSemStorage( f ){
     APP.getStorage( this._semStorageID ).then( f );
 }
 
+getBookmarksList(){
+    return this._semAnnNodes;
+}
+
+// Unused for now
+/*
 setupCursor(){
     let matMark = APP.matSpriteMark.clone();
     matMark.color = this._color;
@@ -79,6 +87,7 @@ setupCursor(){
         APP._hoverMark = undefined;
     });
 }
+*/
 
 clear(){
     this.removeChildren();
@@ -324,9 +333,11 @@ getPOVforMark = (M)=>{
 };
 
 getOrCreateBookmark(i){
+/*
     let bid = "bm-"+this.rid+"-"+i;
-
     let B = ATON.getSemanticNode(bid);
+*/
+    let B = this._semAnnNodes[i];
     if (B) return B;
 
     let M = this.getMark(i);
@@ -334,14 +345,15 @@ getOrCreateBookmark(i){
     let r = 0.2;
     if (APP._bPano) r *= 20.0;
 
-    B = ATON.SemFactory.createSphere(bid, M.position, r);
-
+    B = ATON.SemFactory.createSphere(undefined, M.position, r);
     B.attachTo(this._gBookmarks);
 
     B.setDefaultAndHighlightMaterials(this._matSem, APP.recSemMatHL);
     B.restoreDefaultMaterial();
 
     B.userData.mark = M;
+
+    this._semAnnNodes[i] = B; // Register
 
     return B;
 }

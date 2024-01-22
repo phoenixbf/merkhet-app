@@ -395,14 +395,23 @@ APP.setupEvents = ()=>{
 	ATON.EventHub.clearEventHandlers("SemanticNodeHover");
     ATON.on("SemanticNodeHover", (semid)=>{
         let S = ATON.getSemanticNode(semid);
-        if (S === undefined) return;
+        if (!S) return;
 
-		let mark = S.userData.mark;
+		let ud = S.userData;
+		if (!ud){
+			ATON.FE.showSemLabel(semid);
+			ATON.FE._bSem = true;
+	
+			S.highlight();
+			return;
+		}
+
+		let mark = ud.mark;
 		if (!mark) return;
 
 		let m = mark.userData.i;
 
-        ATON.FE.showSemLabel("M #"+m+" (T:"+mark.userData.time+")");
+        ATON.FE.showSemLabel("#"+m+" (T: "+mark.userData.time+")");
         ATON.FE._bSem = true;
 
         S.highlight();
@@ -414,7 +423,7 @@ APP.setupEvents = ()=>{
 	ATON.EventHub.clearEventHandlers("SemanticNodeLeave");
     ATON.on("SemanticNodeLeave", (semid)=>{
         let S = ATON.getSemanticNode(semid);
-        if (S === undefined) return;
+        if (!S) return;
 
         ATON.FE.hideSemLabel();
         ATON.FE._bSem = false;
