@@ -333,10 +333,6 @@ getPOVforMark = (M)=>{
 };
 
 getOrCreateBookmark(i){
-/*
-    let bid = "bm-"+this.rid+"-"+i;
-    let B = ATON.getSemanticNode(bid);
-*/
     let B = this._semAnnNodes[i];
     if (B) return B;
 

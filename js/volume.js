@@ -126,6 +126,37 @@ forEachVoxel(f){
     return count;
 }
 
+// TODO:
+get3DTexture( encoder ){
+    const voxelArray = new Uint8Array(this._res * this._res * this._res * 3);
+
+    for (let x = 0; x < this._res; x++){
+        for (let y = 0; y < this._res; y++){
+            for (let z = 0; z < this._res; z++){
+                let v = undefined;
+                
+                if (this._v[x] && this._v[x][y] && this._v[x][y][z]) v = encoder(this._v[x][y][z]);
+                else v = encoder(undefined);
+
+                let index = (x + y * this._res + z * this._res * this._res) * 3;
+
+                voxelArray[index]     = v[0]; // 0-255
+                voxelArray[index + 1] = v[1]; // Green component
+                voxelArray[index + 2] = v[2]; // Blue component
+            }
+        }
+    }
+
+    const tex3D = new THREE.Data3DTexture(voxelArray, this._res,this._res,this._res);
+        
+    tex3D.format    = THREE.RGBAFormat;
+    tex3D.type      = THREE.UnsignedByteType;
+    tex3D.minFilter = THREE.LinearFilter;
+    tex3D.magFilter = THREE.LinearFilter;
+
+    return tex3D;
+}
+
 }
 
 export default Volume;
