@@ -127,6 +127,12 @@ forEachVoxel(f){
 }
 
 // TODO:
+// other volume & merge function
+mergeWith(vol, mergef){
+
+}
+
+// TODO:
 get3DTexture( encoder ){
     const voxelArray = new Uint8Array(this._res * this._res * this._res * 3);
 

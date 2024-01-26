@@ -543,6 +543,7 @@ APP.loadProcessedData = (path)=>{
 
 				ATON.FE.showSemLabel(text);
 				ATON.SUI.setInfoNodeText(text);
+				ATON.FE._bSem = true;
             });
 
 			K.setOnLeave(()=>{
@@ -550,7 +551,7 @@ APP.loadProcessedData = (path)=>{
 				//mark.scale.setScalar(scale);
 
 				ATON.FE.hideSemLabel();
-				//ATON.FE._bSem = false;
+				ATON.FE._bSem = false;
 			});
 
 			K.attachTo(APP.gProcessed);
