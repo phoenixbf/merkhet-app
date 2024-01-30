@@ -7,6 +7,7 @@ constructor(rid){
     this.rid  = rid;
     this.node  = undefined;
     this.marks = undefined;
+    this.meshPath = undefined;
 
     this._filterTime = 0.0;
     this._filterTRad = 0.2;
@@ -261,12 +262,12 @@ generateFromCSVdata(data){
     ///let gPath = new THREE.LineGeometry().setFromPoints( path );
     //let mPath = new THREE.Line( gPath, matLine );
 
-    let gPath = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(path), path.length, 0.05, 8, false );
-    let mPath = new THREE.Mesh( gPath, matLine );
+    let nsegs = path.length * 2;
+    let gPath = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(path), nsegs, 0.03, 8, false );
+    this.meshPath = new THREE.Mesh( gPath, matLine );
+    this.meshPath.raycast = APP.VOID_CAST;
 
-    mPath.raycast = APP.VOID_CAST;
-
-    this.node.add(mPath);
+    this.node.add(this.meshPath);
 
     this._tRangeD = (this._tRangeMax - this._tRangeMin);
 

@@ -143,7 +143,7 @@ APP.setupAssets = ()=>{
         transparent: true,
         depthWrite: false,
         opacity: 0.2,
-		side: THREE.DoubleSide,
+		//side: THREE.DoubleSide,
 
 		toneMapped: false
     });
