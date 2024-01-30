@@ -126,12 +126,24 @@ APP.setupAssets = ()=>{
 		toneMapped: false
     });
 
+/*
+	APP.matPath = new THREE.LineMaterial( {
+		color: ATON.MatHub.colors.blue,
+		linewidth: 5, // in world units with size attenuation, pixels otherwise
+		//vertexColors: true,
+
+		//resolution:  // to be set by renderer, eventually
+		dashed: false,
+		alphaToCoverage: true,
+	});
+*/
 	APP.matPath = new THREE.MeshBasicMaterial({
         color: ATON.MatHub.colors.blue,
 
         transparent: true,
         depthWrite: false,
-        opacity: 0.7,
+        opacity: 0.2,
+		side: THREE.DoubleSide,
 
 		toneMapped: false
     });

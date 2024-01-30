@@ -257,9 +257,13 @@ generateFromCSVdata(data){
     this.node.attachTo(APP.gRecords);
 
     // Path
-    let gPath = new THREE.BufferGeometry().setFromPoints( path );
-    //let gPath = new THREE.LineGeometry().setFromPoints( path );
-    let mPath = new THREE.Line( gPath, matLine );
+    //let gPath = new THREE.BufferGeometry().setFromPoints( path );
+    ///let gPath = new THREE.LineGeometry().setFromPoints( path );
+    //let mPath = new THREE.Line( gPath, matLine );
+
+    let gPath = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(path), path.length, 0.05, 8, false );
+    let mPath = new THREE.Mesh( gPath, matLine );
+
     mPath.raycast = APP.VOID_CAST;
 
     this.node.add(mPath);
