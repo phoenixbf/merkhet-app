@@ -30,8 +30,19 @@ UI.init = ()=>{
 			let M = R.getCurrentMark();
 			ATON.Nav.requestPOV( R.getPOVforMark(M), 0.1 );
 		}
+		else {
+		}
 
 		ATON.Photon.fireEvent("MKH_Time", t);
+	});
+
+	$("#idPathVis").on("input change", ()=>{
+		let b = $("#idPathVis").is(':checked');
+
+		let R = APP.getActiveRecord();
+		if (!R) return;
+
+		R.meshPath.visible = b;
 	});
 
 	$("#tRad").on("input change", ()=>{
