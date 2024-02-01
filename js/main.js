@@ -474,11 +474,13 @@ APP.loadProcessedData = (path)=>{
 		let scale  = data.voxelsize * 4.0; // * 8.0;
 		//let scale  = data.voxelsize;
 
+		if (APP._bPano) scale *= 1.5;
+
 		if (!points) return;
 
 		let maxdens = points[0].density;
 
-		let maxcount = Math.min(300, points.length);
+		let maxcount = Math.min(500, points.length);
 		console.log(maxcount)
 
 		//let texmark = new THREE.TextureLoader().load( APP.DIR_ASSETS + "mark.png" );
@@ -490,6 +492,13 @@ APP.loadProcessedData = (path)=>{
 			let py = P.y;
 			let pz = P.z;
 			let d  = P.density;
+
+			if (APP._bPano){
+				px *= APP._panoScale;
+				py *= APP._panoScale;
+				pz *= APP._panoScale;
+				//scale *= 2.0;
+			}
 
 			if (py === undefined) py = 0.0;
 
