@@ -402,6 +402,12 @@ APP.setupEvents = ()=>{
 		APP.Processor.setupVolumesBounds(bb);
 
 		ATON.Nav.setOrbitControl();
+
+		APP.setupScene();
+	});
+
+	ATON.on("MainPano", ()=>{
+		APP.setupScene();
 	});
 
 	ATON.EventHub.clearEventHandlers("SemanticNodeHover");
@@ -465,6 +471,77 @@ APP.update = ()=>{
 
 };
 */
+
+APP.setupScene = ()=>{
+	APP.uniforms = {
+		tVol: { type:'t' },
+		tVolMin: { type:'vec3', value: new THREE.Vector3(-7,-5,-7) },
+		tVolMax: { type:'vec3', value: new THREE.Vector3(7,10,7) },
+	};
+
+	let visitor = ( o ) => {
+		if (o.material){
+			let M = new CustomShaderMaterial({
+				baseMaterial: o.material,
+				uniforms: APP.uniforms,
+
+				vertexShader:`
+					varying vec3 vPositionW;
+					varying vec3 vNormalW;
+					varying vec3 vNormalV;
+		
+					varying vec2 sUV;
+		
+					void main(){
+						sUV = uv;
+		
+						vPositionW = ( modelMatrix * vec4( position, 1.0 )).xyz;
+						vNormalV   = normalize( vec3( normalMatrix * normal ));
+						vNormalW   = (modelMatrix * vec4(normal, 0.0)).xyz;
+		
+						gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+					}
+				`,
+
+				fragmentShader:`
+					precision highp sampler3D;
+
+					varying vec3 vPositionW;
+		
+					varying vec3 vNormalW;
+					varying vec3 vNormalV;
+					varying vec2 sUV;
+
+					uniform sampler3D tVol;
+					uniform vec3 tVolMin;
+					uniform vec3 tVolMax;
+
+					void main(){
+						vec4 baseCol = csm_DiffuseColor;
+/*
+						vec3 voxelPosition = (vPositionW - tVolMin) / (tVolMax - tVolMin);
+						//voxelPosition.x = 1.0 - voxelPosition.x;
+						//voxelPosition.y = 1.0 - voxelPosition.y;
+						//voxelPosition.z = 1.0 - voxelPosition.z;
+
+						vec3 voxelColor = texture(tVol, voxelPosition.xyz).rgb;
+
+						//csm_DiffuseColor = baseCol;
+						csm_DiffuseColor.rgb = voxelColor;
+*/
+						float v = (baseCol.r + baseCol.g + baseCol.b)/3.0;
+						csm_DiffuseColor.rgb = vec3(v);
+					}
+				`
+			});
+
+			o.material = M;
+		}
+	};
+
+	ATON.getRootScene().traverse( visitor );
+	if (ATON._mMainPano) ATON._mMainPano.traverse( visitor );
+};
 
 APP.loadProcessedData = (path)=>{
 	$.getJSON( path, ( data )=>{

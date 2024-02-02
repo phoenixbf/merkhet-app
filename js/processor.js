@@ -12,6 +12,8 @@ Processor.init = ()=>{
     Processor._volumeFocalPoints = new Volume();
     Processor._maxFocHits = 0;
     Processor._bvBB = false;
+
+    Processor._focMats = undefined;
 };
 
 // Set extents for all volumes
@@ -21,6 +23,21 @@ Processor.setupVolumesBounds = (bb)=>{
     
     console.log(APP.Processor._volumeFocalPoints);
     Processor._bvBB = true;
+};
+
+Processor.populateFocMats = (num)=>{
+    Processor._focMats = [];
+
+	for (let i=0; i<num; i++){
+		let p = parseFloat(i/(num-1));
+
+        let mat = APP.matSpriteFocal.clone();
+        mat.color   = APP.getHeatColor(p);
+        mat.opacity = 0.1 + (p*0.3);
+
+		Processor._focMats.push(mat);
+	}
+
 };
 
 Processor.computeFocalFixationsForRecord = (R)=>{
@@ -103,10 +120,17 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 		Processor.computeFocalFixationsForRecord(APP._records[r]);
 	}
 
+    if (!Processor._focMats) Processor.populateFocMats(16);
+
+    let minhits = parseInt( Processor._maxFocHits * 0.1 ); // 0.2
+
+
+
+/*
 	// Populate foc-points
 	let focmats = [];
 
-	let minhits = parseInt( Processor._maxFocHits * 0.1 ); // 0.2
+	let minhits = parseInt( Processor._maxFocHits * 0.2 ); // 0.2
 	console.log(minhits, Processor._maxFocHits);
 
 	for (let i=minhits; i<=Processor._maxFocHits; i++){
@@ -114,10 +138,11 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 
         let mat = APP.matSpriteFocal.clone();
         mat.color   = APP.getHeatColor(p);
-        mat.opacity = 0.1 + (p*0.6);
+        mat.opacity = 0.1 + (p*0.3);
 
 		focmats[i] = mat;
 	}
+*/
 
     let vs = vFoc._voxelsize.x;
 
@@ -129,7 +154,12 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 
 		if (mi < minhits) return;
 
-		let H = new THREE.Sprite( focmats[mi] );
+        let j = (mi-minhits)/(Processor._maxFocHits-minhits);
+        j = parseInt(j * (Processor._focMats.length-1));
+
+        let H = new THREE.Sprite( Processor._focMats[j] );
+
+		//let H = new THREE.Sprite( focmats[mi] );
 		H.raycast = APP.VOID_CAST;
 
 		mi = (mi-minhits)+1;
@@ -143,11 +173,12 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
             H.position.z -= nor.z * of;
         }
 		//let s = vs * 4.0 * mi;
-        let s = vs * 4.0;
+        let s = vs * 8.0;
 
-        if (APP._bPano) s *= 10.0;
+        if (APP._bPano) s *= 7.0;
 
 		H.scale.set(s,s,s);
+        H.renderOrder = mi;
 
 		APP.gFPoints.add(H);
 
@@ -161,6 +192,31 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
         APP.gFPoints.add(nView);
 */
 	});
+};
+
+Processor.blurFocalFixations = ()=>{
+    let vFoc = Processor._volumeFocalPoints;
+
+    vFoc.forEachVoxel((V)=>{
+
+        let avg = 0;
+        let count = 0;
+
+        for (let x=-1; x<=1; x++){
+            for (let y=-1; y<=1; y++){
+                for (let z=-1; z<=1; z++){
+
+                    let R = vFoc.getVoxelData(V.i + x, V.j + y, V.k + z);
+                    if (R){
+                        avg += R.hits;
+                        count++;
+                    }
+                    
+                }
+            }
+        }
+
+    });
 };
 
 export default Processor;

@@ -102,6 +102,15 @@ UI.popupProcess = ()=>{
 
 	$("#rComputeFoc").click(()=>{
 		APP.Processor.computeFocalFixationsForLoadedRecords();
+/*
+		let vtex = APP.Processor._volumeFocalPoints.get3DTexture((v)=>{
+			if (!v) return 0;
+
+			return 255;
+		})
+
+		APP.uniforms.tVol.value = vtex;
+*/
 		ATON.FE.popupClose();
 	});
 };

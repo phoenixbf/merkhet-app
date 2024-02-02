@@ -132,9 +132,10 @@ mergeWith(vol, mergef){
 
 }
 
-// TODO:
+//
 get3DTexture( encoder ){
-    const voxelArray = new Uint8Array(this._res * this._res * this._res * 3);
+    //const voxelArray = new Uint8Array(this._res * this._res * this._res * 4);
+    const voxelArray = new Uint8Array(this._res * this._res * this._res);
 
     for (let x = 0; x < this._res; x++){
         for (let y = 0; y < this._res; y++){
@@ -144,21 +145,33 @@ get3DTexture( encoder ){
                 if (this._v[x] && this._v[x][y] && this._v[x][y][z]) v = encoder(this._v[x][y][z]);
                 else v = encoder(undefined);
 
-                let index = (x + y * this._res + z * this._res * this._res) * 3;
+                let index = (x + y * this._res + z * this._res * this._res); // * 3;
+                //let index = (x*this._res*this._res + y*this._res + z);
+                voxelArray[index] = v;
+/*
+                //let index = (x + y * this._res + z * this._res * this._res) * 3;
+                let index = 4 * (x*this._res*this._res + y*this._res + z);
 
                 voxelArray[index]     = v[0]; // 0-255
                 voxelArray[index + 1] = v[1]; // Green component
                 voxelArray[index + 2] = v[2]; // Blue component
+                voxelArray[index + 3] = 255; // A component
+*/
             }
         }
     }
 
     const tex3D = new THREE.Data3DTexture(voxelArray, this._res,this._res,this._res);
         
-    tex3D.format    = THREE.RGBAFormat;
+    //tex3D.format    = THREE.RGBAFormat;
+    tex3D.format    = THREE.RedFormat;
     tex3D.type      = THREE.UnsignedByteType;
     tex3D.minFilter = THREE.LinearFilter;
     tex3D.magFilter = THREE.LinearFilter;
+    //tex3D.flipY     = true;
+    tex3D.generateMipmaps = true;
+
+    tex3D.needsUpdate = true;
 
     return tex3D;
 }
