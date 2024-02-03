@@ -232,7 +232,7 @@ APP.getHeatColor = (t)=>{
 	if (t<0.0) t = 0.0;
 	if (t>1.0) t = 1.0;
 
-	let i = parseInt(t*31);
+	let i = parseInt(t * (APP.heatGradientColors.length-1));
 	return APP.heatGradientColors[i];
 };
 
@@ -293,7 +293,7 @@ APP.setActiveRecord = (rid)=>{
 	if (!R) return;
 
 	for (let r in APP._records){
-		if (r!==rid) APP._records[r].node.hide();
+		if (r!==rid) APP._records[r].switch(false);
 	}
 
 	APP._currRID = rid;
@@ -304,7 +304,7 @@ APP.setActiveRecord = (rid)=>{
 	$("#tSlider").val(R._tRangeMin);
 	$("#rBookmarks").html("");
 
-	R.node.show();
+	R.switch(true);
 
 	APP.rewindTimeForActiveRecord();
 

@@ -30,6 +30,19 @@ constructor(rid){
     this._semStorageID = rid;
 }
 
+switch(b){
+    if (!b){
+        if (this.node) this.node.hide();
+        if (this._gBookmarks) this._gBookmarks.hide();
+        for (let a in this._semAnnNodes) this._semAnnNodes[a].hide();
+        return;
+    }
+
+    if (this.node) this.node.show();
+    if (this._gBookmarks) this._gBookmarks.show();
+    for (let a in this._semAnnNodes) this._semAnnNodes[a].show();
+}
+
 setSemStorageID(ss){
     this._semStorageID = ss;
 };
