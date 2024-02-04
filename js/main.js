@@ -164,8 +164,8 @@ APP.setupAssets = ()=>{
 	// Heat Gradient
 	APP.heatGradientColors = []; // G to R
 
-	for (let i=0; i<32; i++){
-		let t = parseFloat(i/32.0);
+	for (let i=0; i<16; i++){
+		let t = parseFloat(i/16.0);
 
 		let col = new THREE.Color();
 		col.r = 2.0 * t;
@@ -403,7 +403,7 @@ APP.setupEvents = ()=>{
 
 		ATON.Nav.setOrbitControl();
 
-		APP.setupScene();
+		//APP.setupScene();
 	});
 
 	ATON.on("MainPano", ()=>{
@@ -557,7 +557,7 @@ APP.loadProcessedData = (path)=>{
 
 		let maxdens = points[0].density;
 
-		let maxcount = Math.min(500, points.length);
+		let maxcount = Math.min(300, points.length);
 		console.log(maxcount)
 
 		//let texmark = new THREE.TextureLoader().load( APP.DIR_ASSETS + "mark.png" );
