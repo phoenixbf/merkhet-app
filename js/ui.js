@@ -11,6 +11,7 @@ UI.init = ()=>{
 
 	ATON.FE.uiAddButtonNav("idTopToolbar");
     ATON.FE.uiAddButtonVR("idTopToolbar");
+	ATON.FE.uiAddButtonAR("idTopToolbar");
     ATON.FE.uiAddButtonQR("idTopToolbar");
 
 

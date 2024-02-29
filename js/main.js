@@ -407,7 +407,7 @@ APP.setupEvents = ()=>{
 	});
 
 	ATON.on("MainPano", ()=>{
-		APP.setupScene();
+		//APP.setupScene();
 	});
 
 	ATON.EventHub.clearEventHandlers("SemanticNodeHover");
