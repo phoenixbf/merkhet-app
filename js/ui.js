@@ -2,6 +2,7 @@ let UI = {};
 
 UI.init = ()=>{
     ATON.FE.uiAddButtonHome("idBottomToolbar");
+	ATON.FE.uiAddButtonTalk("idBottomToolbar");
 
 	ATON.FE.uiAddButtonVRC("idTopToolbar");
     ATON.FE.uiAddButtonFullScreen("idTopToolbar");
