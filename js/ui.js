@@ -15,6 +15,8 @@ UI.init = ()=>{
 	ATON.FE.uiAddButtonAR("idTopToolbar");
     ATON.FE.uiAddButtonQR("idTopToolbar");
 
+	UI.setupSpatial();
+
 
 	$("#tSlider").on("input change",()=>{
 		let t = parseFloat( $("#tSlider").val() );
@@ -162,6 +164,38 @@ UI.popupMark = (M)=>{
 			ATON.FE.popupClose();
 		}
 	});
+};
+
+// Spatial UI
+//==================================================
+UI.setupSpatial = ()=>{
+	let buttons = [];
+
+	let btnTalk = new ATON.SUI.Button("sui_talk");
+
+    btnTalk.setIcon(ATON.FE.PATH_RES_ICONS+"talk.png")
+        //.setSwitchColor(ATON.MatHub.colors.orange)
+        .onSelect = ()=>{
+            if (ATON.MediaFlow.isAudioRecording()){
+                ATON.MediaFlow.stopAudioStreaming();
+                btnTalk.switch(false);
+            }
+            else {
+                ATON.MediaFlow.startAudioStreaming();
+                btnTalk.switch(true);
+            }
+        };
+
+	buttons.push( btnTalk );
+
+    UI.sToolbar = ATON.SUI.createToolbar( buttons );
+
+    // wrist sui
+    let pi2 = (Math.PI * 0.5);
+    UI.sToolbar.setPosition(-0.1,0,0.1).setRotation(-pi2,-pi2,pi2).setScale(0.5);
+
+    UI.sToolbar.attachToRoot();
+    UI.sToolbar.hide();
 };
 
 export default UI;

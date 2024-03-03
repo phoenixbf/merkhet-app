@@ -250,6 +250,9 @@ APP.setTime = (t)=>{
 	let R = APP.getActiveRecord();
 	if (!R) return;
 
+	if (t < R._tRangeMin) return;
+	if (t > R._tRangeMax) return;
+
 	R._filterTime = t;
 	R.filter();
 
@@ -410,6 +413,13 @@ APP.setupEvents = ()=>{
 		//APP.setupScene();
 	});
 
+    ATON.on("XRcontrollerConnected", (c)=>{
+        if (c === ATON.XR.HAND_L){
+            ATON.XR.controller1.add(APP.UI.sToolbar);
+            APP.UI.sToolbar.show();  
+        }
+	});
+
 	ATON.EventHub.clearEventHandlers("SemanticNodeHover");
     ATON.on("SemanticNodeHover", (semid)=>{
         let S = ATON.getSemanticNode(semid);
@@ -454,6 +464,15 @@ APP.setupEvents = ()=>{
 
 	// Collaborative
 	//===========================================
+
+    ATON.on("VRC_Connected", ()=>{
+        //
+    });
+	
+	ATON.on("VRC_IDassigned", (uid)=>{
+		ATON.Photon.setUsername("Analyst_"+uid);
+	});
+
 	ATON.Photon.on("MKH_Time", (t)=>{
 		//if (!APP._record) return;
 
@@ -465,12 +484,6 @@ APP.setupEvents = ()=>{
 		APP.setTime(t);
 	});
 };
-
-/* APP.update() if you plan to use an update routine (executed continuously)
-APP.update = ()=>{
-
-};
-*/
 
 APP.setupScene = ()=>{
 	APP.uniforms = {
@@ -657,6 +670,28 @@ APP.loadProcessedData = (path)=>{
 			K.enablePicking();
 		}
 	});
+};
+
+
+// Update
+//========================================================
+APP.update = ()=>{
+	let R = APP.getActiveRecord();
+
+    if (ATON.XR._bPresenting){
+        let v = ATON.XR.getAxisValue(ATON.XR.HAND_L);
+
+		if (R){
+			let dt = (v.y * 0.003) * R._tRangeD;
+
+			let t = R._filterTime + dt;
+
+			APP.setTime(t);
+
+			ATON.Photon.fireEvent("MKH_Time", t.toFixed(2));
+		}
+
+	}
 };
 
 
