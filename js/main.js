@@ -178,6 +178,8 @@ APP.setupAssets = ()=>{
 		APP.heatGradientColors.push(col);
 	}
 
+	APP.populateBlobMats(16);
+
 	// Records colors
 	APP.recColors = [
 		new THREE.Color(0,0,1),
@@ -235,6 +237,34 @@ APP.getHeatColor = (t)=>{
 	let i = parseInt(t * (APP.heatGradientColors.length-1));
 	return APP.heatGradientColors[i];
 };
+
+APP.populateBlobMats = (num)=>{
+    APP._blobMats = [];
+
+	for (let i=0; i<num; i++){
+		let p = parseFloat(i/(num-1));
+
+        let mat = APP.matSpriteFocal.clone();
+        mat.color   = APP.getHeatColor(p);
+        mat.opacity = 0.1 + (p*0.3);
+
+		APP._blobMats.push(mat);
+	}
+};
+
+APP.getBlobMat = (p)=>{
+    let num = APP._blobMats.length;
+
+    if (p<=0.0) return APP._blobMats[0];
+    if (p>=1.0) return APP._blobMats[num-1];
+
+    let j = parseInt(p * (num-1));
+
+    return APP._blobMats[j];
+};
+
+
+
 
 APP.setPanoramicMode = (b)=>{
 	APP._bPano = b;
@@ -570,7 +600,7 @@ APP.loadDataAggregate = (path)=>{
 
 		let maxdens = points[0].density;
 
-		let maxcount = Math.min(100, points.length);
+		let maxcount = Math.min(1000, points.length);
 		console.log(maxcount)
 
 		//let texmark = new THREE.TextureLoader().load( APP.DIR_ASSETS + "mark.png" );
@@ -616,6 +646,8 @@ APP.loadDataAggregate = (path)=>{
 */
 			
 			// Blobs
+			let mat = APP.getBlobMat(1.0 - dp);
+/*
 			let mat = new THREE.SpriteMaterial({ 
 				map: APP.matSpriteMark.map,
 				
@@ -630,7 +662,7 @@ APP.loadDataAggregate = (path)=>{
 				toneMapped: false
 
 			});
-
+*/
             let mark = new THREE.Sprite(mat);
 			mark.raycast = APP.VOID_CAST;
 			
@@ -646,7 +678,7 @@ APP.loadDataAggregate = (path)=>{
 
             K.setOnHover(()=>{
                 //console.log("density:" + d);
-				mat.opacity = o*2.0;
+				//mat.opacity = o*2.0;
 				//mark.scale.setScalar(scale*2.0);
 
 				let text = "Density: "+d.toFixed(4);
@@ -658,7 +690,7 @@ APP.loadDataAggregate = (path)=>{
             });
 
 			K.setOnLeave(()=>{
-				mat.opacity = o;
+				//mat.opacity = o;
 				//mark.scale.setScalar(scale);
 
 				ATON.FE.hideSemLabel();

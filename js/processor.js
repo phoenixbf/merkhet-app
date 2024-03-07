@@ -13,7 +13,6 @@ Processor.init = ()=>{
     Processor._maxFocHits = 0;
     Processor._bvBB = false;
 
-    Processor._focMats = undefined;
     Processor._listFPstr = "";
 };
 
@@ -26,20 +25,6 @@ Processor.setupVolumesBounds = (bb)=>{
     Processor._bvBB = true;
 };
 
-Processor.populateFocMats = (num)=>{
-    Processor._focMats = [];
-
-	for (let i=0; i<num; i++){
-		let p = parseFloat(i/(num-1));
-
-        let mat = APP.matSpriteFocal.clone();
-        mat.color   = APP.getHeatColor(p);
-        mat.opacity = 0.1 + (p*0.3);
-
-		Processor._focMats.push(mat);
-	}
-
-};
 
 Processor.computeFocalFixationsForRecord = (R)=>{
 	if (!R) return;
@@ -127,7 +112,7 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 		Processor.computeFocalFixationsForRecord(APP._records[r]);
 	}
 
-    if (!Processor._focMats) Processor.populateFocMats(16);
+    //if (!Processor._focMats) Processor.populateFocMats(16);
 
     let minhits = parseInt( Processor._maxFocHits * 0.1 ); // 0.2
 
@@ -162,9 +147,9 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 		if (mi < minhits) return;
 
         let j = (mi-minhits)/(Processor._maxFocHits-minhits);
-        j = parseInt(j * (Processor._focMats.length-1));
+        //j = parseInt(j * (Processor._focMats.length-1));
 
-        let H = new THREE.Sprite( Processor._focMats[j] );
+        let H = new THREE.Sprite( APP.getBlobMat(j) );
 
 		//let H = new THREE.Sprite( focmats[mi] );
 		H.raycast = APP.VOID_CAST;
