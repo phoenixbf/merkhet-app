@@ -600,7 +600,7 @@ APP.loadDataAggregate = (path)=>{
 
 		let maxdens = points[0].density;
 
-		let maxcount = Math.min(1000, points.length);
+		let maxcount = Math.min(300, points.length);
 		console.log(maxcount)
 
 		//let texmark = new THREE.TextureLoader().load( APP.DIR_ASSETS + "mark.png" );
