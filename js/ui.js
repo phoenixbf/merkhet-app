@@ -84,7 +84,7 @@ UI.popupRecords = ()=>{
         let rid = $("#rID").val();
 
 		if (rid.endsWith(".json")){
-			APP.loadProcessedData(APP.MKHET_API+"r/"+ APP._mksid +"/"+rid);
+			APP.loadDataAggregate(APP.MKHET_API+"r/"+ APP._mksid +"/"+rid);
 			ATON.FE.popupClose();
 			return;
 		}

@@ -14,6 +14,7 @@ Processor.init = ()=>{
     Processor._bvBB = false;
 
     Processor._focMats = undefined;
+    Processor._listFPstr = "";
 };
 
 // Set extents for all volumes
@@ -59,6 +60,8 @@ Processor.computeFocalFixationsForRecord = (R)=>{
 
             //console.log(fp);
 
+            Processor._listFPstr += fp.p.x+","+fp.p.y+","+fp.p.z+"\n";
+
             Processor._volumeFocalPoints.setData(fp, (d)=>{
                 if (!d) return {
                     hits: 1
@@ -82,6 +85,8 @@ Processor.computeFocalFixationsForRecord = (R)=>{
             );
 
             if (R){
+                Processor._listFPstr += R.p.x+","+R.p.y+","+R.p.z+"\n";
+
                 Processor._volumeFocalPoints.setData(R.p, (d)=>{
                     // First hit
                     if (!d) return {
@@ -116,6 +121,8 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 	APP.gFPoints.removeChildren();
     Processor._maxFocHits = 0;
 
+    Processor._listFPstr = "";
+
 	for (let r in APP._records){
 		Processor.computeFocalFixationsForRecord(APP._records[r]);
 	}
@@ -124,7 +131,7 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 
     let minhits = parseInt( Processor._maxFocHits * 0.1 ); // 0.2
 
-
+    //ATON.Utils.downloadText(Processor._listFPstr, "fp_"+APP._mksid+".csv"); 
 
 /*
 	// Populate foc-points

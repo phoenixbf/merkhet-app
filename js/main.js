@@ -65,8 +65,8 @@ APP.setup = ()=>{
 	APP.gFPoints = ATON.createUINode("focalpoints");
 	APP.gFPoints.attachToRoot();
 	
-	APP.gProcessed = ATON.createSemanticNode("processed");
-	APP.gProcessed.attachToRoot();
+	APP.gAggregates = ATON.createSemanticNode("aggregates");
+	APP.gAggregates.attachToRoot();
 
 	ATON._bqSem = true;
 
@@ -77,8 +77,8 @@ APP.setup = ()=>{
 
 	APP._mksid = APP.getSceneMerkhetID(sid);
 
-	let procData = APP.params.get("p");
-	if (procData) APP.loadProcessedData(APP.MKHET_API+"r/"+ APP._mksid +"/"+procData);
+	let procData = APP.params.get("a");
+	if (procData) APP.loadDataAggregate(APP.MKHET_API+"r/"+ APP._mksid +"/"+procData);
 
 	APP._hoverMark = undefined;
 };
@@ -556,7 +556,7 @@ APP.setupScene = ()=>{
 	if (ATON._mMainPano) ATON._mMainPano.traverse( visitor );
 };
 
-APP.loadProcessedData = (path)=>{
+APP.loadDataAggregate = (path)=>{
 	$.getJSON( path, ( data )=>{
         console.log("Loaded density data: "+path);
 
@@ -570,7 +570,7 @@ APP.loadProcessedData = (path)=>{
 
 		let maxdens = points[0].density;
 
-		let maxcount = Math.min(300, points.length);
+		let maxcount = Math.min(100, points.length);
 		console.log(maxcount)
 
 		//let texmark = new THREE.TextureLoader().load( APP.DIR_ASSETS + "mark.png" );
@@ -665,7 +665,7 @@ APP.loadProcessedData = (path)=>{
 				ATON.FE._bSem = false;
 			});
 
-			K.attachTo(APP.gProcessed);
+			K.attachTo(APP.gAggregates);
 
 			K.enablePicking();
 		}
