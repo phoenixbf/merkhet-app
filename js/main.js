@@ -85,13 +85,15 @@ APP.setup = ()=>{
 
 
 APP.setupAssets = ()=>{
+	let TL = ATON.Utils.textureLoader;
+
 	APP.matSpriteMark = new THREE.SpriteMaterial({ 
-        map: new THREE.TextureLoader().load( APP.DIR_ASSETS + "mark.png" ),
+        map: TL.load( APP.DIR_ASSETS + "mark.png" ),
         
 		transparent: true,
         //opacity: 0.5,
         
-		color: ATON.MatHub.colors.blue,
+		color: ATON.MatHub.colors.white,
         depthWrite: false, 
         //depthTest: false
         
@@ -99,21 +101,21 @@ APP.setupAssets = ()=>{
 		toneMapped: false
     });
 
+	APP.mark = new THREE.Sprite(APP.matSpriteMark);
+
 	APP.matSpriteFocal = new THREE.SpriteMaterial({ 
-		map: APP.matSpriteMark.map,
+		map: TL.load( APP.DIR_ASSETS + "mark.png" ),
 		
 		transparent: true,
 		opacity: 1.0,
 		
-		color: ATON.MatHub.colors.green,
+		color: ATON.MatHub.colors.white,
 		depthWrite: false, 
 		//depthTest: false,
 		
 		//blending: THREE.AdditiveBlending,
 		toneMapped: false
 	});
-
-	APP.mark = new THREE.Sprite(APP.matSpriteMark);
 
 	APP.matDirection = new THREE.MeshBasicMaterial({
         color: ATON.MatHub.colors.white,
@@ -148,8 +150,20 @@ APP.setupAssets = ()=>{
 		toneMapped: false
     });
 
+	APP.matVoxel = new THREE.MeshBasicMaterial({
+        //color: ATON.MatHub.colors.white,
+		map: TL.load( APP.DIR_ASSETS + "vox.png" ),
+
+        transparent: true,
+        depthWrite: false,
+        opacity: 0.15,
+		side: THREE.DoubleSide,
+
+		toneMapped: false
+    });
+
 	APP.matFOV = new THREE.MeshBasicMaterial({
-		map: new THREE.TextureLoader().load( APP.DIR_ASSETS + "fov.png" ),
+		map: TL.load( APP.DIR_ASSETS + "fov.png" ),
         color: ATON.MatHub.colors.green,
 
 		transparent: true,
@@ -247,6 +261,7 @@ APP.populateBlobMats = (num)=>{
         let mat = APP.matSpriteFocal.clone();
         mat.color   = APP.getHeatColor(p);
         mat.opacity = 0.1 + (p*0.3);
+		//mat.opacity = 0.1;
 
 		APP._blobMats.push(mat);
 	}
@@ -586,6 +601,10 @@ APP.setupScene = ()=>{
 	if (ATON._mMainPano) ATON._mMainPano.traverse( visitor );
 };
 
+
+/*
+	Data Aggregates
+====================================*/
 APP.loadDataAggregate = (path)=>{
 	$.getJSON( path, ( data )=>{
         console.log("Loaded density data: "+path);
@@ -601,10 +620,10 @@ APP.loadDataAggregate = (path)=>{
 		let maxdens = points[0].density;
 
 		let maxcount = Math.min(100, points.length);
-		console.log(maxcount)
+		//console.log(maxcount)
 
 		//let texmark = new THREE.TextureLoader().load( APP.DIR_ASSETS + "mark.png" );
-		let maxcolor = new THREE.Color(1, 0, 0);
+		//let maxcolor = new THREE.Color(1, 0, 0);
 
 		for (let p=0; p<maxcount; p++){
 			let P = points[p];
@@ -647,22 +666,7 @@ APP.loadDataAggregate = (path)=>{
 			
 			// Blobs
 			let mat = APP.getBlobMat(1.0 - dp);
-/*
-			let mat = new THREE.SpriteMaterial({ 
-				map: APP.matSpriteMark.map,
-				
-				transparent: true,
-				opacity: o,
-				
-				color: APP.getHeatColor(1.0 - dp), //maxcolor.lerp(ATON.MatHub.colors.green, dp),
-				depthWrite: false, 
-				//depthTest: false
-				
-				//blending: THREE.MultiplicativeBlending
-				toneMapped: false
 
-			});
-*/
             let mark = new THREE.Sprite(mat);
 			mark.raycast = APP.VOID_CAST;
 			
@@ -672,7 +676,8 @@ APP.loadDataAggregate = (path)=>{
             K.add(mark);
 
 			let trigger = new THREE.Mesh( ATON.Utils.geomUnitCube, ATON.MatHub.materials.fullyTransparent);
-			trigger.scale.set(0.2,0.2,0.2);
+			//let trigger = new THREE.Mesh( ATON.Utils.geomUnitCube, ATON.MatHub.materials.defUI);
+			trigger.scale.setScalar(data.voxelsize);
 			K.add(trigger)
 
 
@@ -680,6 +685,7 @@ APP.loadDataAggregate = (path)=>{
                 //console.log("density:" + d);
 				//mat.opacity = o*2.0;
 				//mark.scale.setScalar(scale*2.0);
+				trigger.material = APP.matVoxel;
 
 				let text = "Density: "+d.toFixed(4);
 				console.log(text);
@@ -692,6 +698,7 @@ APP.loadDataAggregate = (path)=>{
 			K.setOnLeave(()=>{
 				//mat.opacity = o;
 				//mark.scale.setScalar(scale);
+				trigger.material = ATON.MatHub.materials.fullyTransparent;
 
 				ATON.FE.hideSemLabel();
 				ATON.FE._bSem = false;
@@ -702,6 +709,10 @@ APP.loadDataAggregate = (path)=>{
 			K.enablePicking();
 		}
 	});
+};
+
+APP.clearAggregates = ()=>{
+	APP.gAggregates.removeChildren();
 };
 
 
