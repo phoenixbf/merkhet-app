@@ -7,7 +7,7 @@ UI.init = ()=>{
 	ATON.FE.uiAddButtonVRC("idTopToolbar");
     ATON.FE.uiAddButtonFullScreen("idTopToolbar");
 
-    ATON.FE.uiAddButton("idTopToolbar", "assets/i-records.png", UI.popupRecords );
+    ATON.FE.uiAddButton("idTopToolbar", "assets/i-records.png", UI.popupData );
 	ATON.FE.uiAddButton("idTopToolbar", "assets/i-process.png", UI.popupProcess );
 
 	ATON.FE.uiAddButtonNav("idTopToolbar");
@@ -57,8 +57,8 @@ UI.init = ()=>{
 	});
 };
 
-UI.popupRecords = ()=>{
-    let htmlcontent = "<div class='atonPopupTitle'>Records</div>";
+UI.popupData = ()=>{
+    let htmlcontent = "<div class='atonPopupTitle'>Data</div>";
 	//htmlcontent += "<h2>Current Records</h2>";
 	for (let r in APP._records) htmlcontent += "<div class='atonBTN atonBTN-horizontal'>"+r+"</div>";
 	htmlcontent += "<br>";
@@ -68,6 +68,7 @@ UI.popupRecords = ()=>{
     htmlcontent += "<datalist id='idRList'></datalist><br>";
 
 	htmlcontent += "<div id='rLoad' class='atonBTN atonBTN-green atonBTN-horizontal'><img src='"+ATON.FE.PATH_RES_ICONS+"db.png'>LOAD</div>";
+	htmlcontent += "<div id='rClear' class='atonBTN atonBTN-red atonBTN-horizontal'><img src='"+ATON.FE.PATH_RES_ICONS+"trash.png'>CLEAR</div>";
 
     if ( !ATON.FE.popupShow(htmlcontent) ) return;
 
@@ -93,6 +94,12 @@ UI.popupRecords = ()=>{
         
         ATON.FE.popupClose();
     });
+
+	$("#rClear").click(()=>{
+		APP.clearRecords();
+
+		ATON.FE.popupClose();
+	});
 };
 
 

@@ -104,8 +104,9 @@ setupCursor(){
 */
 
 clear(){
-    this.removeChildren();
     this.node.removeChildren();
+    if (this._gBookmarks) this._gBookmarks.removeChildren();
+    for (let a in this._semAnnNodes) this._semAnnNodes[a] = null;
 }
 
 getMark(i){

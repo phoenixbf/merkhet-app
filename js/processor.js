@@ -45,7 +45,7 @@ Processor.computeFocalFixationsForRecord = (R)=>{
 
             //console.log(fp);
 
-            Processor._listFPstr += fp.p.x+","+fp.p.y+","+fp.p.z+"\n";
+            Processor._listFPstr += fp.x+","+fp.y+","+fp.z+"\n";
 
             Processor._volumeFocalPoints.setData(fp, (d)=>{
                 if (!d) return {

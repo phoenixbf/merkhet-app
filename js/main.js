@@ -378,6 +378,9 @@ APP.setActiveRecord = (rid)=>{
 	});
 
 	console.log("Active Record: "+rid);
+
+	APP.params.set('r', rid);
+	history.replaceState(null, null, "?" + APP.params.toString());
 };
 
 APP.getActiveRecord = ()=>{
@@ -402,6 +405,24 @@ APP.loadRecord = (rid)=>{
 
 		APP.setActiveRecord(rid);
 	});
+};
+
+APP.clearRecord = (rid)=>{
+	if (!APP._records[rid]) return;
+
+	APP._records[rid].clear();
+	$("#tabrec-"+rid).remove();
+};
+
+APP.clearRecords = ()=>{
+	for (let r in APP._records) APP.clearRecord(r);
+
+	APP.gRecords.removeChildren();
+	APP._records = {};
+
+	APP._currRID = undefined;
+
+	$("#recTabs").html("");
 };
 
 APP.getRecordSemStorageID = (rid)=>{
