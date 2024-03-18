@@ -91,6 +91,7 @@ UI.popupData = ()=>{
 		}
 
 		APP.loadRecord(rid);
+		ATON.Photon.fireEvent("MKH_ActiveRecord", rid);
         
         ATON.FE.popupClose();
     });

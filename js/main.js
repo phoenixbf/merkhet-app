@@ -338,7 +338,10 @@ APP.setActiveRecord = (rid)=>{
 	let R = APP._records[rid];
 	console.log(rid)
 
-	if (!R) return;
+	if (!R){
+		APP.loadRecord(rid);
+		return;
+	}
 
 	for (let r in APP._records){
 		if (r!==rid) APP._records[r].switch(false);
@@ -383,6 +386,11 @@ APP.setActiveRecord = (rid)=>{
 	history.replaceState(null, null, "?" + APP.params.toString());
 };
 
+APP.setActiveRecordBroadcast = (rid)=>{
+	APP.setActiveRecord(rid);
+	ATON.Photon.fireEvent("MKH_ActiveRecord", rid);
+};
+
 APP.getActiveRecord = ()=>{
 	return APP._records[APP._currRID];
 };
@@ -399,7 +407,7 @@ APP.loadRecord = (rid)=>{
 		$("#tSlider").attr("max", R._tRangeMax);
 		$("#tSlider").val(R._tRangeMin);
 
-		$("#recTabs").append("<div id='tabrec-"+rid+"' class='tabRecord' style='background-color: "+strcol+"' onclick=\"APP.setActiveRecord('"+rid+"')\">"+rid+"</div>");
+		$("#recTabs").append("<div id='tabrec-"+rid+"' class='tabRecord' style='background-color: "+strcol+"' onclick=\"APP.setActiveRecordBroadcast('"+rid+"')\">"+rid+"</div>");
 
 		APP._records[rid] = R;
 
@@ -548,6 +556,10 @@ APP.setupEvents = ()=>{
 		$("#tValue").html(t);
 
 		APP.setTime(t);
+	});
+
+	ATON.Photon.on("MKH_ActiveRecord", rid => {
+		APP.setActiveRecord(rid);
 	});
 };
 
