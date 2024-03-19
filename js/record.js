@@ -148,8 +148,8 @@ generateFromCSVdata(data){
 
     let path = [];
 
-    let matMark = APP.matSpriteMark.clone();
-    //matMark.color = this._color;
+    //let matMark = APP.matSpriteCursor.clone(); //APP.matSpriteMark.clone();
+    ///matMark.color = this._color;
 
     let matLine = APP.matPath.clone();
     matLine.color = this._color;
@@ -206,7 +206,7 @@ generateFromCSVdata(data){
             path.push(K.position);
 
             // 3D Representation
-            let mark = new THREE.Sprite(matMark);
+            let mark = new THREE.Sprite( APP.matSpriteCursor /*matMark*/);
             mark.renderOrder = 100;
             //mark.raycast = APP.VOID_CAST;
             K.add(mark);

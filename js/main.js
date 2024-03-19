@@ -12,7 +12,7 @@ window.APP = APP;
 
 APP.MKHET_API  = "/mkhet/";
 APP.DIR_ASSETS = APP.basePath + "assets/";
-APP.MARK_SCALE = 0.5;
+APP.MARK_SCALE = 0.2;
 
 APP.VOID_CAST = (rc, hitlist)=>{};
 
@@ -86,7 +86,7 @@ APP.setup = ()=>{
 
 APP.setupAssets = ()=>{
 	let TL = ATON.Utils.textureLoader;
-
+/*
 	APP.matSpriteMark = new THREE.SpriteMaterial({ 
         map: TL.load( APP.DIR_ASSETS + "mark.png" ),
         
@@ -102,6 +102,22 @@ APP.setupAssets = ()=>{
     });
 
 	APP.mark = new THREE.Sprite(APP.matSpriteMark);
+*/
+	APP.matSpriteCursor = new THREE.SpriteMaterial({ 
+        map: TL.load( APP.DIR_ASSETS + "cursor.png" ),
+        
+		transparent: true,
+        //opacity: 0.5,
+        
+		color: ATON.MatHub.colors.white,
+        depthWrite: false, 
+        //depthTest: false
+        
+		//blending: THREE.AdditiveBlending
+		toneMapped: false
+    });
+
+	APP.cursor = new THREE.Sprite(APP.matSpriteCursor);
 
 	APP.matSpriteFocal = new THREE.SpriteMaterial({ 
 		map: TL.load( APP.DIR_ASSETS + "mark.png" ),

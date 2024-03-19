@@ -60,10 +60,11 @@ UI.init = ()=>{
 UI.popupData = ()=>{
     let htmlcontent = "<div class='atonPopupTitle'>Data</div>";
 	//htmlcontent += "<h2>Current Records</h2>";
+/*
 	for (let r in APP._records) htmlcontent += "<div class='atonBTN atonBTN-horizontal'>"+r+"</div>";
 	htmlcontent += "<br>";
-
-    htmlcontent += "<div class='atonPopupDescriptionContainer' style='text-align:center'>Select records to load</div><br>";
+*/
+    htmlcontent += "<div class='atonPopupDescriptionContainer' style='text-align:center'>Select data to load</div><br>";
     htmlcontent += "<input id='rID' type='text' size='40' list='idRList' ></input>";
     htmlcontent += "<datalist id='idRList'></datalist><br>";
 
