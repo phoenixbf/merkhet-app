@@ -10,9 +10,12 @@ import UI from "./ui.js";
 let APP = ATON.App.realize();
 window.APP = APP;
 
-APP.MKHET_API  = "/mkhet/";
+APP.MKHET_API  = undefined;
 APP.DIR_ASSETS = APP.basePath + "assets/";
 APP.MARK_SCALE = 0.2;
+
+APP.pathConfigFile = APP.basePath+"config.json";
+APP.cdata = undefined;
 
 APP.VOID_CAST = (rc, hitlist)=>{};
 
@@ -45,8 +48,9 @@ APP.setup = ()=>{
 	);
 
     ATON.FE.realize(); // Realize the base front-end
-
 	ATON.FE.addBasicLoaderEvents(); // Add basic events handling
+
+	APP.loadConfig();
 
 	//ATON.SUI.enableSemIcons();
 
@@ -55,7 +59,6 @@ APP.setup = ()=>{
 
 	let sid = APP.params.get("s");
 	if (!sid) return;
-
 
 	ATON.FE.loadSceneID(sid);
 
@@ -78,9 +81,21 @@ APP.setup = ()=>{
 	APP._mksid = APP.getSceneMerkhetID(sid);
 
 	let procData = APP.params.get("a");
-	if (procData) APP.loadDataAggregate(APP.MKHET_API+"r/"+ APP._mksid +"/"+procData);
+	if (procData) APP.loadDataAggregate(APP.MKHET_API+"sessions/"+ APP._mksid +"/"+procData);
 
 	APP._hoverMark = undefined;
+};
+
+APP.loadConfig = ()=>{
+    return $.getJSON( APP.pathConfigFile, ( data )=>{
+        //console.log(data);
+        console.log("Loaded config");
+
+        APP.cdata = data;
+		if (APP.cdata.capturehub) APP.MKHET_API = APP.cdata.capturehub + "/api/";
+
+        ATON.fireEvent("APP_ConfigLoaded");
+    });
 };
 
 

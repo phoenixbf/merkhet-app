@@ -73,7 +73,7 @@ UI.popupData = ()=>{
 
     if ( !ATON.FE.popupShow(htmlcontent) ) return;
 
-    $.get(APP.MKHET_API+"r/"+ APP.getSceneMerkhetID() +"/@", (data)=>{
+    $.get(APP.MKHET_API+"sessions/"+ APP.getSceneMerkhetID() +"/*", (data)=>{
         for (let d in data){
 			let rid = data[d];
 
@@ -86,7 +86,7 @@ UI.popupData = ()=>{
         let rid = $("#rID").val();
 
 		if (rid.endsWith(".json")){
-			APP.loadDataAggregate(APP.MKHET_API+"r/"+ APP._mksid +"/"+rid);
+			APP.loadDataAggregate(APP.MKHET_API+"sessions/"+ APP._mksid +"/"+rid);
 			ATON.FE.popupClose();
 			return;
 		}

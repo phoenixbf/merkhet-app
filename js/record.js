@@ -296,8 +296,11 @@ loadViaAPI( onComplete ){
     let self = this;
     let sid = APP.getSceneMerkhetID(ATON.SceneHub.currID);
 
-    $.get(APP.MKHET_API+"r/"+sid+"/"+self.rid, (data)=>{
-        self.generateFromCSVdata(data);
+    let rrid = ATON.Utils.removeFileExtension(self.rid);
+
+    $.get(APP.MKHET_API+"sessions/"+sid+"/"+rrid, (data)=>{
+        if (data) self.generateFromCSVdata(data);
+        
         if (onComplete) onComplete();
     });
 
