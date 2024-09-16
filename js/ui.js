@@ -86,7 +86,7 @@ UI.popupData = ()=>{
         let rid = $("#rID").val();
 
 		if (rid.endsWith(".json")){
-			APP.loadDataAggregate(APP.MKHET_API+"sessions/"+ APP._mksid +"/"+rid);
+			APP.loadDataAggregate(APP.MKHET_API+"aggregates/"+ APP._mksid +"/"+ATON.Utils.removeFileExtension(rid));
 			ATON.FE.popupClose();
 			return;
 		}

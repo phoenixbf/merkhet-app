@@ -81,7 +81,7 @@ APP.setup = ()=>{
 	APP._mksid = APP.getSceneMerkhetID(sid);
 
 	let procData = APP.params.get("a");
-	if (procData) APP.loadDataAggregate(APP.MKHET_API+"sessions/"+ APP._mksid +"/"+procData);
+	if (procData) APP.loadDataAggregate(APP.MKHET_API+"aggregates/"+ APP._mksid +"/"+procData);
 
 	APP._hoverMark = undefined;
 };
@@ -92,7 +92,10 @@ APP.loadConfig = ()=>{
         console.log("Loaded config");
 
         APP.cdata = data;
-		if (APP.cdata.capturehub) APP.MKHET_API = APP.cdata.capturehub + "/api/";
+		if (APP.cdata.capturehub){
+			if (!APP.cdata.capturehub.endsWith("/")) APP.cdata.capturehub += "/";
+			APP.MKHET_API = APP.cdata.capturehub + "api/";
+		}
 
         ATON.fireEvent("APP_ConfigLoaded");
     });
@@ -122,6 +125,7 @@ APP.setupAssets = ()=>{
         map: TL.load( APP.DIR_ASSETS + "cursor.png" ),
         
 		transparent: true,
+		forceSinglePass: true,
         //opacity: 0.5,
         
 		color: ATON.MatHub.colors.white,
@@ -138,6 +142,7 @@ APP.setupAssets = ()=>{
 		map: TL.load( APP.DIR_ASSETS + "mark.png" ),
 		
 		transparent: true,
+		forceSinglePass: true,
 		opacity: 1.0,
 		
 		color: ATON.MatHub.colors.white,
@@ -154,6 +159,8 @@ APP.setupAssets = ()=>{
         transparent: true,
         depthWrite: false,
         opacity: 0.5, 
+		forceSinglePass: true,
+
         //depthTest: false
         //flatShading: true
 		toneMapped: false
@@ -176,6 +183,8 @@ APP.setupAssets = ()=>{
         transparent: true,
         depthWrite: false,
         opacity: 0.2,
+		forceSinglePass: true,
+
 		//side: THREE.DoubleSide,
 
 		toneMapped: false
