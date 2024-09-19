@@ -182,7 +182,7 @@ APP.setupAssets = ()=>{
 
         transparent: true,
         depthWrite: false,
-        opacity: 0.2,
+        opacity: 0.4,
 		forceSinglePass: true,
 
 		//side: THREE.DoubleSide,
