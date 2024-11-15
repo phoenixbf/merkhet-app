@@ -111,6 +111,9 @@ UI.popupProcess = ()=>{
 	htmlcontent += "Compute focal-fixations via voxel-based volume for all records loaded<br>"
 	htmlcontent += "<div id='rComputeFoc' class='atonBTN atonBTN-red atonBTN-horizontal'><img src='"+ATON.FE.PATH_RES_ICONS+"lp.png'>Compute Focal Fixations</div>";
 
+	htmlcontent += "Compute positional fixations via voxel-based volume for all records loaded<br>"
+	htmlcontent += "<div id='rComputeLoc' class='atonBTN atonBTN-red atonBTN-horizontal'><img src='"+ATON.FE.PATH_RES_ICONS+"lp.png'>Compute Positional Fixations</div>";
+
     if ( !ATON.FE.popupShow(htmlcontent) ) return;
 
 	$("#rComputeFoc").click(()=>{
@@ -124,6 +127,11 @@ UI.popupProcess = ()=>{
 
 		APP.uniforms.tVol.value = vtex;
 */
+		ATON.FE.popupClose();
+	});
+
+	$("#rComputeLoc").click(()=>{
+		APP.Processor.computeFixLocationsForLoadedRecords();
 		ATON.FE.popupClose();
 	});
 };

@@ -10,7 +10,11 @@ Processor.init = ()=>{
 
     // Computed focal voxels
     Processor._volumeFocalPoints = new Volume();
+    Processor._volumeLocations   = new Volume();
+
     Processor._maxFocHits = 0;
+    Processor._maxLocHits = 0;
+
     Processor._bvBB = false;
 
     Processor._listFPstr = "";
@@ -19,7 +23,9 @@ Processor.init = ()=>{
 // Set extents for all volumes
 Processor.setupVolumesBounds = (bb)=>{
     if (Processor._bvBB) return;
+
     Processor._volumeFocalPoints.setExtents(bb.min, bb.max);
+    Processor._volumeLocations.setExtents(bb.min, bb.max);
     
     console.log(APP.Processor._volumeFocalPoints);
     Processor._bvBB = true;
@@ -209,6 +215,102 @@ Processor.blurFocalFixations = ()=>{
         }
 
     });
+};
+
+//===========
+Processor.computeFixLocationsForRecord = (R)=>{
+	if (!R) return;
+
+	let marks = R.marks.children;
+
+	for (let m in marks){
+		let M = marks[m];
+
+		let data = M.userData;
+
+        if (!APP._bPano){
+
+            Processor._volumeLocations.setData(new THREE.Vector3(data.pos[0],data.pos[1],data.pos[2]), (d)=>{
+                // First hit
+                if (!d) return {
+                    hits: 1
+                };
+
+                // Non-empty voxel (Data in d)
+                let h = d.hits + 1;
+                if (h > Processor._maxLocHits) Processor._maxLocHits = h;
+/*
+                let nor = d.n;
+                nor.x += data.dir[0];
+                nor.y += data.dir[1];
+                nor.z += data.dir[2];
+*/
+                return { 
+                    hits: h
+                    //n: nor
+                };
+            });
+        }
+
+	}
+};
+
+Processor.computeFixLocationsForLoadedRecords = ()=>{
+    let vLoc = Processor._volumeLocations;
+
+	vLoc.clear();
+	APP.gLocFixations.removeChildren();
+    Processor._maxLocHits = 0;
+
+    //Processor._listFPstr = "";
+
+	for (let r in APP._records){
+		Processor.computeFixLocationsForRecord(APP._records[r]);
+	}
+
+    let minhits = parseInt( Processor._maxLocHits * 0.1 ); // 0.2
+
+    let vs = vLoc._voxelsize.x;
+
+	vLoc.forEachVoxel((v)=>{
+		let mi = v.data.hits;
+
+/*
+        let nor = v.data.n;
+        if (nor) nor = nor.multiplyScalar(1.0/mi);
+*/
+		if (mi < minhits) return;
+
+        let j = (mi-minhits)/(Processor._maxLocHits - minhits);
+        //j = parseInt(j * (Processor._focMats.length-1));
+
+        let H = new THREE.Sprite( APP.getBlobMat(j) );
+
+		//let H = new THREE.Sprite( focmats[mi] );
+		H.raycast = APP.VOID_CAST;
+
+		mi = (mi-minhits)+1;
+        mi *= 0.1;
+
+		H.position.copy(v.loc);
+/*
+        if (nor){
+            let of = vs * 0.8;
+            H.position.x -= nor.x * of;
+            H.position.y -= nor.y * of;
+            H.position.z -= nor.z * of;
+        }
+*/
+		//let s = vs * 4.0 * mi;
+        let s = vs * 16.0;
+
+        //if (APP._bPano) s *= 7.0;
+
+		H.scale.set(s,s,s);
+        H.renderOrder = mi;
+
+		APP.gLocFixations.add(H);
+	});
 };
 
 export default Processor;

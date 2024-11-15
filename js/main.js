@@ -67,6 +67,9 @@ APP.setup = ()=>{
 
 	APP.gFPoints = ATON.createUINode("focalpoints");
 	APP.gFPoints.attachToRoot();
+
+	APP.gLocFixations = ATON.createUINode("locfixations");
+	APP.gLocFixations.attachToRoot();
 	
 	APP.gAggregates = ATON.createSemanticNode("aggregates");
 	APP.gAggregates.attachToRoot();
