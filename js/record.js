@@ -279,11 +279,11 @@ generateFromCSVdata(data){
     ///let gPath = new THREE.LineGeometry().setFromPoints( path );
     //let mPath = new THREE.Line( gPath, matLine );
 
-    let nsegs = path.length * 2;
+    let nsegs = path.length * 4;
     let pathrad = 0.01; //0.03;
     if (APP._bPano) pathrad = 0.3;
 
-    let gPath = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(path), nsegs, pathrad, 8, false );
+    let gPath = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(path), nsegs, pathrad, 6, false );
     this.meshPath = new THREE.Mesh( gPath, matLine );
     this.meshPath.raycast = APP.VOID_CAST;
 
