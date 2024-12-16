@@ -268,7 +268,7 @@ Processor.computeFixLocationsForLoadedRecords = ()=>{
 		Processor.computeFixLocationsForRecord(APP._records[r]);
 	}
 
-    let minhits = parseInt( Processor._maxLocHits * 0.1 ); // 0.2
+    let minhits = 0; //parseInt( Processor._maxLocHits * 0.1 ); // 0.2
 
     let vs = vLoc._voxelsize.x;
 
@@ -302,7 +302,7 @@ Processor.computeFixLocationsForLoadedRecords = ()=>{
         }
 */
 		//let s = vs * 4.0 * mi;
-        let s = vs * 16.0;
+        let s = vs * 8.0;
 
         //if (APP._bPano) s *= 7.0;
 
