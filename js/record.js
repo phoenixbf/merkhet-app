@@ -144,6 +144,12 @@ generateFromCSVdata(data){
 
     let rows = data.split("\n");
     let num = rows.length;
+
+    if (num < 3){
+        APP.log("Not sufficient data for this record")
+        return this;
+    }
+
     let values;
 
     let path = [];
@@ -165,6 +171,9 @@ generateFromCSVdata(data){
     let C_POS = H.indexOf("posx");
     let C_DIR = H.indexOf("dirx");
     let C_FOV = H.indexOf("fov");
+    let C_SEL = H.indexOf("selx");
+    let C_LHPOS = H.indexOf("lh_pos");
+    let C_RHPOS = H.indexOf("rh_pos");
 
 
     for (let m=1; m<num; m++){
@@ -303,6 +312,8 @@ generateFromCSVdata(data){
     let gPath = new THREE.BufferGeometry().setFromPoints( path );
     ///let gPath = new THREE.LineGeometry().setFromPoints( path );
     let mPath = new THREE.Line( gPath, matLine );
+    mPath.raycast = APP.VOID_CAST;
+    
     this.node.add(mPath);
 /*
     let nsegs = path.length * 4;
