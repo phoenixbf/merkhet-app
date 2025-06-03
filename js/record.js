@@ -157,6 +157,16 @@ generateFromCSVdata(data){
     let matfov = APP.matFOV.clone();
     matfov.color = this._color;
 
+    // Header
+    let H = rows[0];
+    H = H.split(",");
+
+    let C_NAV = H.indexOf("nav");
+    let C_POS = H.indexOf("posx");
+    let C_DIR = H.indexOf("dirx");
+    let C_FOV = H.indexOf("fov");
+
+
     for (let m=1; m<num; m++){
         let M = rows[m];
 
@@ -167,17 +177,32 @@ generateFromCSVdata(data){
         if (!isNaN(t)){
             if (this._tRangeMin===undefined) this._tRangeMin = t;
 
-            let nav = values[1];
+            // Nav mode
+            let nav = undefined;
+            if (C_NAV>=0) nav = values[C_NAV];
 
-            let px = parseFloat(values[2]);
-            let py = parseFloat(values[3]);
-            let pz = parseFloat(values[4]);
+            // Position
+            let px = undefined;
+            let py = undefined;
+            let pz = undefined;
+            if (C_POS>=0){
+                px = parseFloat(values[C_POS]);
+                py = parseFloat(values[C_POS+1]);
+                pz = parseFloat(values[C_POS+2]);
+            }
 
-            let dx = parseFloat(values[5]);
-            let dy = parseFloat(values[6]);
-            let dz = parseFloat(values[7]);
+            // View direction
+            let dx = undefined;
+            let dy = undefined;
+            let dz = undefined;
+            if (C_DIR>=0){
+                dx = parseFloat(values[C_DIR]);
+                dy = parseFloat(values[C_DIR+1]);
+                dz = parseFloat(values[C_DIR+2]);
+            }
 
-            let fov = parseFloat(values[11]);
+            let fov = undefined;
+            if (C_FOV>=0) fov = parseFloat(values[C_FOV]);
 
             let K = ATON.createUINode(this.rid+"-m"+m);
 
@@ -198,10 +223,10 @@ generateFromCSVdata(data){
             // UserData
             K.userData.i    = path.length;
             K.userData.time = t;
-            K.userData.nav  = nav;
-            K.userData.pos  = [px,py,pz];
-            K.userData.dir  = [dx,dy,dz];
-            K.userData.fov  = fov;
+            if (nav!==undefined) K.userData.nav  = nav;
+            if (px!==undefined)  K.userData.pos  = [px,py,pz];
+            if (dx!==undefined)  K.userData.dir  = [dx,dy,dz];
+            if (fov!==undefined) K.userData.fov  = fov;
 
             path.push(K.position);
 
@@ -275,10 +300,11 @@ generateFromCSVdata(data){
     this.node.attachTo(APP.gRecords);
 
     // Path
-    //let gPath = new THREE.BufferGeometry().setFromPoints( path );
+    let gPath = new THREE.BufferGeometry().setFromPoints( path );
     ///let gPath = new THREE.LineGeometry().setFromPoints( path );
-    //let mPath = new THREE.Line( gPath, matLine );
-
+    let mPath = new THREE.Line( gPath, matLine );
+    this.node.add(mPath);
+/*
     let nsegs = path.length * 4;
     let pathrad = 0.01; //0.03;
     if (APP._bPano) pathrad = 0.3;
@@ -288,7 +314,7 @@ generateFromCSVdata(data){
     this.meshPath.raycast = APP.VOID_CAST;
 
     this.node.add(this.meshPath);
-
+*/
     this._tRangeD = (this._tRangeMax - this._tRangeMin);
 
     return this;
