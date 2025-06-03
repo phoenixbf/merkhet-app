@@ -146,7 +146,7 @@ generateFromCSVdata(data){
     let num = rows.length;
 
     if (num < 3){
-        APP.log("Not sufficient data for this record")
+        console.log("Not sufficient data for this record")
         return this;
     }
 
