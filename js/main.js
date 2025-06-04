@@ -182,10 +182,11 @@ APP.setupAssets = ()=>{
 */
 	APP.matPath = new THREE.MeshBasicMaterial({
         color: ATON.MatHub.colors.blue,
-
+/*
         transparent: true,
         depthWrite: false,
         opacity: 0.7,
+*/
 		forceSinglePass: true,
 
 		//side: THREE.DoubleSide,

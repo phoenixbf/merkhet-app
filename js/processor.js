@@ -5,6 +5,8 @@ let Processor = {};
 
 Processor.tracer = Tracer;
 
+Processor.V_ZERO = new THREE.Vector3();
+
 Processor.init = ()=>{
     Processor.tracer.init();
 
@@ -82,7 +84,8 @@ Processor.computeFocalFixationsForRecord = (R)=>{
                     // First hit
                     if (!d) return {
                         hits: 1,
-                        n: new THREE.Vector3(data.dir[0],data.dir[1],data.dir[2])
+                        n: new THREE.Vector3(data.dir[0],data.dir[1],data.dir[2]),
+                        //d: 0.0
                     };
 
                     // Non-empty voxel (Data in d)
@@ -94,9 +97,13 @@ Processor.computeFocalFixationsForRecord = (R)=>{
                     nor.y += data.dir[1];
                     nor.z += data.dir[2];
 
+                    //let dist = d.d;
+                    //dist += data.dist;
+
                     return { 
                         hits: h,
-                        n: nor
+                        n: nor,
+                        //d: dist
                     };
                 });
             }
@@ -120,7 +127,7 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 
     //if (!Processor._focMats) Processor.populateFocMats(16);
 
-    let minhits = parseInt( Processor._maxFocHits * 0.1 ); // 0.2
+    let minhits = 1; //parseInt( Processor._maxFocHits * 0.1 ); // 0.2
 
     //ATON.Utils.downloadText(Processor._listFPstr, "fp_"+APP._mksid+".csv"); 
 
@@ -185,6 +192,19 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 
 		APP.gLocFixations.add(K);
 
+        //Norm
+        if (!APP._bPano){
+            //let gNorm = new THREE.BufferGeometry().setFromPoints([v.loc, new THREE.Vector3(v.loc.x-nor.x, v.loc.y-nor.y, v.loc.z-nor.z)]);
+            let gNorm = new THREE.BufferGeometry().setFromPoints([
+                Processor.V_ZERO, 
+                new THREE.Vector3(-nor.x*0.3, -nor.y*0.3, -nor.z*0.3)
+            ]);
+
+            let nView = new THREE.Line( gNorm, APP.matDirection);
+            nView.raycast = APP.VOID_CAST;
+            K.add(nView);
+        }
+
         // Trigger
         let trigger = new THREE.Mesh( ATON.Utils.geomUnitCube, ATON.MatHub.materials.fullyTransparent);
 		trigger.scale.setScalar(vs);
@@ -193,14 +213,20 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
         K.setOnHover(()=>{
             trigger.material = APP.matVoxel;
 
-            let text = "Focal Fixation Hits: "+ v.data.hits;
+            let text = "Focal Fixation - Hits:"+ v.data.hits;
             console.log(text);
 
             ATON.FE.showSemLabel(text);
             ATON.SUI.setInfoNodeText(text);
             ATON.FE._bSem = true;
         });
-
+/*
+        K.setOnSelect(()=>{
+            ATON.Nav.requestPOV(
+                new ATON.POV().setTarget(v.loc).setPosition(v.loc.x-nor.x, v.loc.y-nor.y, v.loc.z-nor.z)
+            );
+        });
+*/
         K.setOnLeave(()=>{
             trigger.material = ATON.MatHub.materials.fullyTransparent;
 
@@ -211,16 +237,6 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
         K.enablePicking();
 
 		//APP.gFPoints.add(H);
-
-        //Norm
-/*
-        if (APP._bPano) return;
-
-        let gNorm = new THREE.BufferGeometry().setFromPoints([v.loc, new THREE.Vector3(v.loc.x-nor.x, v.loc.y-nor.y, v.loc.z-nor.z)]);
-        let nView = new THREE.Line( gNorm, APP.matDirection);
-        nView.raycast = APP.VOID_CAST;
-        APP.gFPoints.add(nView);
-*/
 	});
 };
 
@@ -356,7 +372,7 @@ Processor.computeFixLocationsForLoadedRecords = ()=>{
         K.setOnHover(()=>{
             trigger.material = APP.matVoxel;
 
-            let text = "Location Fixation Hits: "+ v.data.hits;
+            let text = "Location Fixation - Hits:"+ v.data.hits;
             console.log(text);
 
             ATON.FE.showSemLabel(text);
