@@ -163,7 +163,7 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 		mi = (mi-minhits)+1;
         mi *= 0.1;
 
-		H.position.copy(v.loc);
+		//H.position.copy(v.loc);
         if (nor){
             let of = vs * 0.8;
             H.position.x -= nor.x * of;
@@ -178,7 +178,39 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 		H.scale.set(s,s,s);
         H.renderOrder = mi;
 
-		APP.gFPoints.add(H);
+
+        let K = ATON.createSemanticNode("locfix"+v.i+"_"+v.j+"_"+v.k);
+        K.position.copy(v.loc);
+        K.add(H);
+
+		APP.gLocFixations.add(K);
+
+        // Trigger
+        let trigger = new THREE.Mesh( ATON.Utils.geomUnitCube, ATON.MatHub.materials.fullyTransparent);
+		trigger.scale.setScalar(vs);
+		K.add(trigger);
+
+        K.setOnHover(()=>{
+            trigger.material = APP.matVoxel;
+
+            let text = "Focal Fixation Hits: "+ v.data.hits;
+            console.log(text);
+
+            ATON.FE.showSemLabel(text);
+            ATON.SUI.setInfoNodeText(text);
+            ATON.FE._bSem = true;
+        });
+
+        K.setOnLeave(()=>{
+            trigger.material = ATON.MatHub.materials.fullyTransparent;
+
+            ATON.FE.hideSemLabel();
+            ATON.FE._bSem = false;
+        });
+
+        K.enablePicking();
+
+		//APP.gFPoints.add(H);
 
         //Norm
 /*
@@ -268,9 +300,9 @@ Processor.computeFixLocationsForLoadedRecords = ()=>{
 		Processor.computeFixLocationsForRecord(APP._records[r]);
 	}
 
-    let minhits = 0; //parseInt( Processor._maxLocHits * 0.1 ); // 0.2
+    let minhits = 1; //parseInt( Processor._maxLocHits * 0.1 );
 
-    let vs = vLoc._voxelsize.x;
+    let vs = vLoc.getVoxelSize().x;
 
 	vLoc.forEachVoxel((v)=>{
 		let mi = v.data.hits;
@@ -281,7 +313,7 @@ Processor.computeFixLocationsForLoadedRecords = ()=>{
 */
 		if (mi < minhits) return;
 
-        let j = (mi-minhits)/(Processor._maxLocHits - minhits);
+        let j = (mi - minhits)/(Processor._maxLocHits - minhits);
         //j = parseInt(j * (Processor._focMats.length-1));
 
         let H = new THREE.Sprite( APP.getBlobMat(j) );
@@ -292,7 +324,7 @@ Processor.computeFixLocationsForLoadedRecords = ()=>{
 		mi = (mi-minhits)+1;
         mi *= 0.1;
 
-		H.position.copy(v.loc);
+		//H.position.copy(v.loc);
 /*
         if (nor){
             let of = vs * 0.8;
@@ -309,7 +341,37 @@ Processor.computeFixLocationsForLoadedRecords = ()=>{
 		H.scale.set(s,s,s);
         H.renderOrder = mi;
 
-		APP.gLocFixations.add(H);
+        let K = ATON.createSemanticNode("locfix"+v.i+"_"+v.j+"_"+v.k);
+        K.position.copy(v.loc);
+        K.add(H);
+
+		APP.gLocFixations.add(K);
+
+        // Trigger
+        let trigger = new THREE.Mesh( ATON.Utils.geomUnitCube, ATON.MatHub.materials.fullyTransparent);
+		//let trigger = new THREE.Mesh( ATON.Utils.geomUnitCube, ATON.MatHub.materials.defUI);
+		trigger.scale.setScalar(vs);
+		K.add(trigger);
+
+        K.setOnHover(()=>{
+            trigger.material = APP.matVoxel;
+
+            let text = "Location Fixation Hits: "+ v.data.hits;
+            console.log(text);
+
+            ATON.FE.showSemLabel(text);
+            ATON.SUI.setInfoNodeText(text);
+            ATON.FE._bSem = true;
+        });
+
+        K.setOnLeave(()=>{
+            trigger.material = ATON.MatHub.materials.fullyTransparent;
+
+            ATON.FE.hideSemLabel();
+            ATON.FE._bSem = false;
+        });
+
+        K.enablePicking();
 	});
 };
 

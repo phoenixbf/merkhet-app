@@ -791,6 +791,11 @@ APP.clearAggregates = ()=>{
 	APP.gAggregates.removeChildren();
 };
 
+APP.clearProcessed = ()=>{
+	APP.gFPoints.removeChildren();
+	APP.gLocFixations.removeChildren();
+}
+
 
 // Update
 //========================================================

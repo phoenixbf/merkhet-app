@@ -23,6 +23,10 @@ setExtents(exmin, exmax){
     this._voxelsize.z = this._bbSize.z / this._res;
 }
 
+getVoxelSize(){
+    return this._voxelsize;
+}
+
 getVoxelData(i,j,k){
     let V = this._v;
     
