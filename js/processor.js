@@ -84,7 +84,7 @@ Processor.computeFocalFixationsForRecord = (R)=>{
                     // First hit
                     if (!d) return {
                         hits: 1,
-                        n: new THREE.Vector3(data.dir[0],data.dir[1],data.dir[2]),
+                        n: new THREE.Vector3(data.dir[0]*R.d, data.dir[1]*R.d, data.dir[2]*R.d),
                         //d: 0.0
                     };
 
@@ -93,9 +93,9 @@ Processor.computeFocalFixationsForRecord = (R)=>{
                     if (h > Processor._maxFocHits) Processor._maxFocHits = h;
 
                     let nor = d.n;
-                    nor.x += data.dir[0];
-                    nor.y += data.dir[1];
-                    nor.z += data.dir[2];
+                    nor.x += (data.dir[0]*R.d);
+                    nor.y += (data.dir[1]*R.d);
+                    nor.z += (data.dir[2]*R.d);
 
                     //let dist = d.d;
                     //dist += data.dist;
@@ -177,8 +177,9 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
             H.position.y -= nor.y * of;
             H.position.z -= nor.z * of;
         }
-		//let s = vs * 4.0 * mi;
-        let s = vs * 8.0;
+		///let s = vs * 4.0 * mi;
+        //let s = vs * 8.0;
+        let s = nor.length();
 
         if (APP._bPano) s *= 7.0;
 
@@ -235,8 +236,6 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
         });
 
         K.enablePicking();
-
-		//APP.gFPoints.add(H);
 	});
 };
 
