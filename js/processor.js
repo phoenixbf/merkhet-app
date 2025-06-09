@@ -178,8 +178,8 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
             H.position.z -= nor.z * of;
         }
 		///let s = vs * 4.0 * mi;
-        //let s = vs * 8.0;
-        let s = nor.length();
+        let s = vs * 8.0;
+        //let s = nor.length();
 
         if (APP._bPano) s *= 7.0;
 
