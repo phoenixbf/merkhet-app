@@ -127,7 +127,7 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 
     //if (!Processor._focMats) Processor.populateFocMats(16);
 
-    let minhits = 1; //parseInt( Processor._maxFocHits * 0.1 ); // 0.2
+    let minhits = 2; //parseInt( Processor._maxFocHits * 0.1 ); // 0.2
 
     //ATON.Utils.downloadText(Processor._listFPstr, "fp_"+APP._mksid+".csv"); 
 
@@ -159,7 +159,7 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 
 		if (mi < minhits) return;
 
-        let j = (mi-minhits)/(Processor._maxFocHits-minhits);
+        let j = (mi-minhits)/(Processor._maxFocHits - minhits);
         //j = parseInt(j * (Processor._focMats.length-1));
 
         let H = new THREE.Sprite( APP.getBlobMat(j) );
@@ -187,11 +187,11 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
         H.renderOrder = mi;
 
 
-        let K = ATON.createSemanticNode("locfix"+v.i+"_"+v.j+"_"+v.k);
+        let K = ATON.createSemanticNode("focfix"+v.i+"_"+v.j+"_"+v.k);
         K.position.copy(v.loc);
         K.add(H);
 
-		APP.gLocFixations.add(K);
+		APP.gFPoints.add(K);
 
         //Norm
         if (!APP._bPano){
@@ -235,8 +235,22 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
             ATON.FE._bSem = false;
         });
 
+        K.userData.hits = mi;
+
         K.enablePicking();
 	});
+};
+
+Processor.filterFocalFixations = (h)=>{
+    for (let c in APP.gFPoints.children){
+        const C = APP.gFPoints.children[c];
+
+        const hits = C.userData.hits;
+        //console.log(hits)
+
+        if (hits >= h) C.show();
+        else C.hide();
+    }
 };
 
 Processor.blurFocalFixations = ()=>{
@@ -264,8 +278,9 @@ Processor.blurFocalFixations = ()=>{
     });
 };
 
-//===========
-Processor.computeFixLocationsForRecord = (R)=>{
+//========================
+// Locations
+Processor.computePositionalFixationsForRecord = (R)=>{
 	if (!R) return;
 
 	let marks = R.marks.children;
@@ -302,7 +317,7 @@ Processor.computeFixLocationsForRecord = (R)=>{
 	}
 };
 
-Processor.computeFixLocationsForLoadedRecords = ()=>{
+Processor.computePositionalFixationsForLoadedRecords = ()=>{
     let vLoc = Processor._volumeLocations;
 
 	vLoc.clear();
@@ -312,10 +327,10 @@ Processor.computeFixLocationsForLoadedRecords = ()=>{
     //Processor._listFPstr = "";
 
 	for (let r in APP._records){
-		Processor.computeFixLocationsForRecord(APP._records[r]);
+		Processor.computePositionalFixationsForRecord(APP._records[r]);
 	}
 
-    let minhits = 1; //parseInt( Processor._maxLocHits * 0.1 );
+    let minhits = 2; //parseInt( Processor._maxLocHits * 0.1 );
 
     let vs = vLoc.getVoxelSize().x;
 
@@ -356,7 +371,7 @@ Processor.computeFixLocationsForLoadedRecords = ()=>{
 		H.scale.set(s,s,s);
         H.renderOrder = mi;
 
-        let K = ATON.createSemanticNode("locfix"+v.i+"_"+v.j+"_"+v.k);
+        let K = ATON.createSemanticNode("posfix"+v.i+"_"+v.j+"_"+v.k);
         K.position.copy(v.loc);
         K.add(H);
 
@@ -386,8 +401,22 @@ Processor.computeFixLocationsForLoadedRecords = ()=>{
             ATON.FE._bSem = false;
         });
 
+        K.userData.hits = mi;
+
         K.enablePicking();
 	});
+};
+
+Processor.filterPositionalFixations = (h)=>{
+    for (let c in APP.gLocFixations.children){
+        const C = APP.gLocFixations.children[c];
+
+        const hits = C.userData.hits;
+        //console.log(hits)
+
+        if (hits >= h) C.show();
+        else C.hide();
+    }
 };
 
 export default Processor;

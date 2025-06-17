@@ -131,7 +131,7 @@ UI.popupProcess = ()=>{
 	});
 
 	$("#rComputeLoc").click(()=>{
-		APP.Processor.computeFixLocationsForLoadedRecords();
+		APP.Processor.computePositionalFixationsForLoadedRecords();
 		ATON.FE.popupClose();
 	});
 };
