@@ -33,9 +33,21 @@ Processor.setupVolumesBounds = (bb)=>{
     Processor._bvBB = true;
 };
 
+Processor.setupVolumeBoundsFromScene = ()=>{
+		ATON.recomputeSceneBounds();
+
+		let bs = ATON._rootVisible.getBound();
+		let bb = new THREE.Box3();
+		bs.getBoundingBox(bb);
+
+		APP.Processor.setupVolumesBounds(bb);
+};
+
 
 Processor.computeFocalFixationsForRecord = (R)=>{
 	if (!R) return;
+
+    Processor.setupVolumeBoundsFromScene();
 
 	let marks = R.marks.children;
 
@@ -282,6 +294,8 @@ Processor.blurFocalFixations = ()=>{
 // Locations
 Processor.computePositionalFixationsForRecord = (R)=>{
 	if (!R) return;
+
+    Processor.setupVolumeBoundsFromScene();
 
 	let marks = R.marks.children;
 

@@ -515,7 +515,7 @@ APP.setupEvents = ()=>{
 
 	ATON.on("AllNodeRequestsCompleted",()=>{
 		if (APP._bPano) return;
-
+/*
 		ATON.recomputeSceneBounds();
 
 		let bs = ATON._rootVisible.getBound();
@@ -523,7 +523,7 @@ APP.setupEvents = ()=>{
 		bs.getBoundingBox(bb);
 
 		APP.Processor.setupVolumesBounds(bb);
-
+*/
 		ATON.Nav.setOrbitControl();
 
 		//APP.setupScene();
