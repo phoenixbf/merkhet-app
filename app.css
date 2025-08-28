@@ -1,51 +1,217 @@
+:root {
+    --merkhet-ui-margin: 4px;
 
-.mkhetTimeSliderContainer {
-    z-index: 110;
+    --aton-colors-accent: white;
+    --aton-colors-accent-rgb: 255,255,255;
+}
+
+.merkhet-text-block {
+    font-size: smaller;
+    text-align: justify;
+    margin: 4px;
+}
+
+.merkhet-main-toolbar {
+    margin: var(--merkhet-ui-margin);
+
+    z-index: 100 !important;
+
+    max-height: calc(100% - (var(--merkhet-ui-margin)*2));
+
+    background-color: rgba(var(--bs-body-bg-rgb), 0.5) !important;
+    border-radius: var(--bs-border-radius);
+
+    -webkit-backdrop-filter: blur(var(--aton-blur-radius));
+    backdrop-filter: blur(var(--aton-blur-radius));
+}
+
+.merkhet-user-toolbar {
+    top: 0px;
+    right: 0px;
+    position: absolute;
+
+    margin: var(--merkhet-ui-margin);
+
+    background-color: rgba(var(--bs-body-bg-rgb), 0.3) !important;
+    border-radius: var(--bs-border-radius);
+
+    -webkit-backdrop-filter: blur(var(--aton-blur-radius));
+    backdrop-filter: blur(var(--aton-blur-radius));
+}
+
+.merkhet-bottom-container {
     position: absolute;
     
-    display: block;
+    bottom: 0px;
     width: 100%;
     
-    bottom: 60px;
-    
-    margin: auto !important;
-    padding: 0px !important;
-    
-    text-align: center !important;
-}
-
-.tabRecordsGroup {
-    display: block;
-    width: 100%;
-}
-
-.tabRecord {
-    display: inline-block;
-    background-color: rgba(0,0,128, 0.5);
-
-    box-shadow: 0 0px 5px rgba(0,0,0, 0.5);
-    color: white;
-
-    vertical-align: middle;
     text-align: center;
-    
-    border-radius: 5px;
 
-    padding: 12px;
+    background-color: rgba(var(--bs-body-bg-rgb), 0.5) !important;
+    border-radius: var(--bs-border-radius);
+
+    -webkit-backdrop-filter: blur(var(--aton-blur-radius));
+    backdrop-filter: blur(var(--aton-blur-radius));
+}
+
+.merkhet-bottom-toolbar {
+    display: inline-block;
+    margin: var(--merkhet-ui-margin);
+
+    margin: 0px;
+}
+
+.merkhet-side-panel {
+    z-index: 10 !important;
+
+    padding-left: 50px;
+}
+
+.merkhet-record {
+    display: block;
+/*     cursor: pointer; */
+
+    padding: 2px;
+    display: block;
+
+    white-space: nowrap;
+
     margin: 2px;
+    /*margin-left: 8px;*/
 
-    height: 10px;
-    line-height: 10px;
+    background-color: rgba(var(--bs-body-bg-rgb), 0.3);
+    /*border-left: solid var(--bs-body-color) 1px;*/
 
-    text-decoration: none;
+    border-radius: var(--bs-border-radius);
+
     font-size: smaller;
-    text-shadow: none;
 
-    cursor: pointer;
-
-    backdrop-filter: blur(6px);
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+    user-select: none;
 }
 
-.tabRecord:hover {
-    box-shadow: 0 0px 5px rgba(255,255,255, 1);
+
+.merkhet-timeline-container {
+    display: block;
+    width: 100%;
+    text-align: center;
+
+    padding: 10px;
+    margin: 0px;
 }
+
+.merkhet-timeline-slider {
+    display: block !important;
+    width: 100% !important;
+    padding: 0px;
+
+    margin: auto !important;
+}
+
+.merkhet-timeline-info {
+    display: block;
+    font-size: small;
+}
+
+.merkhet-timeline-record {
+    /* font-size: larger; */
+    /* white-space: nowrap; */
+
+    display: inline-block;
+    padding: 8px;
+
+    margin-right: 8px;
+
+    background-color: rgba(var(--bs-body-bg-rgb), 0.3);
+    border-radius: var(--bs-border-radius);
+}
+
+.merkhet-timeline-progress {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+
+    margin: 0px;
+    padding: 0px;
+
+    background-color: white;
+    width: 50%;
+    height: 10px;
+
+    opacity: 0.2;
+}
+
+/* 
+.merkhet-timeline-circle {
+  width: 20px;
+  height: 20px;
+  background: black;
+  border-radius: 15px;
+  position: absolute;
+  top: -7px;
+  border: 3px solid white;
+  cursor: pointer;
+
+  &:before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    background: white;
+    position: absolute;
+    border-radius: 100%;
+    top: 2px;
+    left: 2px;
+    display: none;
+  }
+  .merkhet-timeline-mark-popup {
+    width: auto;
+    height: auto;
+    padding: 10px;
+    white-space: nowrap;
+    display: inline-block;
+    color: white;
+    position: absolute;
+    top: 20px;
+    left: -75px;
+    display: none;
+    transition: all 0.1s ease-out;
+  }
+
+  &.hover:before, &.active:before {
+    display: block;
+  }
+  &.hover .merkhet-timeline-mark-popup, &.active .merkhet-timeline-mark-popup {
+    display: block;
+  }
+  &.active .merkhet-timeline-mark-popup {
+    top: -40px;
+  }
+}
+
+.merkhet-timeline-mark {
+    display: none;
+    width: 70%;
+    margin: auto;
+    margin-top: 25%;
+    text-align: center;
+    color: white;
+}
+
+.merkhet-timeline {
+    height: 6px;
+    width: 70%;
+    background: white;
+    border-radius: 5px;
+    margin: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    position: relative;
+}
+
+.merkhet-timeline-container {
+    width: 100%;
+    height: 20%;
+} */

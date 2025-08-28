@@ -1,142 +1,443 @@
 let UI = {};
 
 UI.init = ()=>{
-    ATON.FE.uiAddButtonHome("idBottomToolbar");
-	ATON.FE.uiAddButtonTalk("idBottomToolbar");
-
-	ATON.FE.uiAddButtonVRC("idTopToolbar");
-    ATON.FE.uiAddButtonFullScreen("idTopToolbar");
-
-    ATON.FE.uiAddButton("idTopToolbar", "assets/i-records.png", UI.popupData );
-	ATON.FE.uiAddButton("idTopToolbar", "assets/i-process.png", UI.popupProcess );
-
-	ATON.FE.uiAddButtonNav("idTopToolbar");
-    ATON.FE.uiAddButtonVR("idTopToolbar");
-	ATON.FE.uiAddButtonAR("idTopToolbar");
-    ATON.FE.uiAddButtonQR("idTopToolbar");
+    UI._elMainToolbar   = ATON.UI.get("sideToolbar");
+    UI._elBottomToolbar = ATON.UI.get("bottomToolbar");
+    UI._elUserToolbar   = ATON.UI.get("userToolbar");
+	UI._elBottomPlate   = ATON.UI.get("bottomPlate");
+	UI._elTimeline      = ATON.UI.get("timeline");
 
 	UI.setupSpatial();
 
+    // Dedicated side panel
+    UI._elSidePanel = ATON.UI.createElementFromHTMLString(`
+        <div class="offcanvas offcanvas-start aton-std-bg aton-sidepanel merkhet-side-panel" tabindex="-1">
+        </div>
+    `);
+    UI._sidepanel = new bootstrap.Offcanvas(UI._elSidePanel);
+    document.body.append(UI._elSidePanel);
 
-	$("#tSlider").on("input change",()=>{
-		let t = parseFloat( $("#tSlider").val() );
-		let bCamLock = $("#idCamLock").is(':checked');
-
-		APP.setTime(t);
-
-		t = t.toFixed(2);
-
-		$("#tValue").html(t);
-
-		let R = APP.getActiveRecord();
-
-		if (bCamLock){
-			let M = R.getCurrentMark();
-			ATON.Nav.requestPOV( R.getPOVforMark(M), 0.1 );
-		}
-		else {
-		}
-
-		ATON.Photon.fireEvent("MKH_Time", t);
-	});
-
-	$("#idPathVis").on("input change", ()=>{
-		let b = $("#idPathVis").is(':checked');
-
-		let R = APP.getActiveRecord();
-		if (!R) return;
-
-		R.meshPath.visible = b;
-	});
-
-	$("#tRad").on("input change", ()=>{
-		let r = parseFloat( $("#tRad").val() );
-
-		APP._record._filterTRad = r;
-		APP._record.filter();
-	});
+	UI.buildToolbar();
 };
 
-UI.popupData = ()=>{
-    let htmlcontent = "<div class='atonPopupTitle'>Data</div>";
-	//htmlcontent += "<h2>Current Records</h2>";
+UI.toggleBottomPlate = (b)=>{
+	ATON.UI.toggleElement(UI._elBottomPlate, b);
+};
+
+UI.updateInfoElementFromRecord = (el, R,t)=>{
+	if (!t) t = R._tRangeMin;
+	if (!R) return;
+
+	let rv = ATON.Utils.removeFileExtension(R.rid).split("_");
+	let date = rv[0];
+	let rid  = rv[1];
+
+	el.innerHTML = `
+		<div class='merkhet-timeline-record' style='background-color:${R.getColor(0.3)}'>${date}_<b>${rid}</b></div>
+		<div style='white-space: nowrap; display:inline-block'><b>Time</b>: ${t.toFixed(2)} | <b>Duration</b>: ${APP.getMinutesString(R._tRangeD)} | <b>Date</b>: ${date}</div>
+	`;
+};
+
+UI.buildTimelineForActiveRecord = ()=>{
+	UI._elTimeline.innerHTML = "";
+
+	let elInfo = ATON.UI.createContainer({classes: "merkhet-timeline-info"});
+
+	let R = APP.getActiveRecord();
+	if (!R) ATON.UI.hideElement(UI._elTimeline);
+
+	if (!R._tRangeD) return;
+
+	let range = [R._tRangeMin, R._tRangeMax];
+	let step  = R._tRangeD * 0.001;
+
+	let elSlider = ATON.UI.createSlider({
+		range: range,
+		step: step,
+		//label: "Time",
+		value: R._tRangeMin,
+		classes: "merkhet-timeline-slider",
+		oninput: (t)=>{
+			t = parseFloat(t);
+			APP.setTime(t);
+
+			if (APP._bViewLock){
+				let M = R.getCurrentMark();
+				ATON.Nav.requestPOV( R.getPOVforMark(M), 0.1 );
+			}
+
+			UI.updateInfoElementFromRecord(elInfo,R,t);
+			
+			ATON.Photon.fireEvent("MKH_Time", t);
+		}
+	});
+
+	UI.updateInfoElementFromRecord(elInfo,R);
+
+	UI._elTimeline.append( elInfo );
+	UI._elTimeline.append( elSlider );
+	//elInfo.append( ATON.UI.createElementFromHTMLString("<div class='merkhet-timeline-progress'></div>"))
+};
+
+UI.buildToolbar = ()=>{
+    UI._elBottomToolbar.append(
+        ATON.UI.createButtonHome(),
+		UI.createViewLockButton()
+    );
+
+	UI._elUserToolbar.append( UI.createUserButton() );
+
+	UI._elMainToolbar.append(
+		ATON.UI.createButton({
+        	icon: "assets/i-merkhet.png",
+        	onpress: UI.modalMerkhet
+    	}),
+
+		ATON.UI.createButtonFullscreen(),
+
+		ATON.UI.createButton({
+        	icon: "bi-activity",
+        	onpress: UI.panelRecords
+    	}),
+
+		ATON.UI.createButton({
+        	icon: "bi-bar-chart-fill",
+        	onpress: UI.panelAggregates
+    	}),
+
+		ATON.UI.createButton({
+        	icon: "bi-cpu",
+        	onpress: UI.panelCompute
+    	}),
+
+		ATON.UI.createButtonVR(),
+		ATON.UI.createButtonAR()
+	);
+};
+
+UI.createUserButton = ()=>{
+    UI._elUserBTN = ATON.UI.createButton({
+        icon: "user",
+        onpress: UI.modalUser
+    });
+
+    ATON.checkAuth((u)=>{
+        UI._elUserBTN.classList.add("aton-btn-highlight");
+    });
+
+    return UI._elUserBTN;
+};
+
+UI.createViewLockButton = ()=>{
+	let el = ATON.UI.createButton({
+		icon: "bi-lock-fill",
+		onpress: ()=>{
+			if (!APP._bViewLock){
+				el.classList.add("aton-btn-highlight");
+				APP._bViewLock = true;
+			}
+			else {
+				el.classList.remove("aton-btn-highlight");
+				APP._bViewLock = false;
+			}
+		}
+	});
+
+	return el;
+};
+
 /*
-	for (let r in APP._records) htmlcontent += "<div class='atonBTN atonBTN-horizontal'>"+r+"</div>";
-	htmlcontent += "<br>";
+    Modals
+=====================================*/
+
+UI.modalUser = ()=>{
+
+    ATON.checkAuth(
+        // Logged
+        (u)=>{
+            let elBody = ATON.UI.createContainer({ classes: "d-grid gap-2" });
+            elBody.append(
+                ATON.UI.createButton({
+                    text: "Logout",
+                    icon: "exit",
+                    classes: "btn-secondary",
+                    onpress: ()=>{
+                        ATON.REQ.logout();
+                        ATON.UI.hideModal();
+
+                        if (UI._elUserBTN) UI._elUserBTN.classList.remove("aton-btn-highlight");
+                    }
+                })
+            );
+
+            ATON.UI.showModal({
+                header: u.username,
+                body: elBody
+            })
+        },
+        // Not logged
+        ()=>{
+            ATON.UI.showModal({
+                header: "Analyst",
+                body: ATON.UI.createLoginForm({
+                    onSuccess: (r)=>{
+                        ATON.UI.hideModal();
+                        if (UI._elUserBTN) UI._elUserBTN.classList.add("aton-btn-highlight");
+                    },
+                    onFail: ()=>{
+                        // TODO:
+                    }
+                })
+            })
+        }
+    );
+};
+
+
+/*
+    Side tools
+=====================================*/
+UI.openToolPanel = (options)=>{
+    if (!options) options = {};
+
+    UI._elSidePanel.innerHTML = "";
+
+    if (options.header){
+        let el = document.createElement('div');
+        el.classList.add("offcanvas-header");
+
+        el.innerHTML = "<h4 class='offcanvas-title'>"+options.header+"</h4><button type='button' class='btn-close' data-bs-dismiss='offcanvas' aria-label='Close'></button>";
+
+        if (options.headelement) el.prepend(options.headelement);
+
+        UI._elSidePanel.append(el);
+    }
+
+    if (options.body){
+        let el = document.createElement('div');
+        el.classList.add("offcanvas-body");
+
+        el.append(options.body);
+
+        UI._elSidePanel.append(el);
+    }
+
+    UI._sidepanel.show();
+};
+
+UI.closeToolPanel = ()=>{
+    UI._sidepanel.hide();
+    //UI._bSidePanel = false;
+};
+
+UI.createRecordItem = (rid)=>{
+	const R = APP._records[rid];
+
+	let rname = ATON.Utils.removeFileExtension(rid);
+
+	let el = ATON.UI.createContainer({classes: "merkhet-record"});
+/* 
+	el.onclick = ()=>{
+		APP.setActiveRecord(rid);
+	};
+ */
+	let strcol = R.getColor(0.3);
+	el.style.backgroundColor = strcol;
+
+	const elActionsC = ATON.UI.createContainer({style: "display:inline-block; margin-right:0px"});
+
+	elActionsC.append( ATON.UI.createButton({
+		icon: "bi-crosshair",
+		size: "small",
+		onpress: ()=>{
+			APP.setActiveRecord(rid);
+		}
+	}));
+
+	el.append( elActionsC );
+	el.append( rname );
+/*
+	el.append( ATON.UI.createButton({
+		text: rid,
+		onpress: ()=>{
+		}
+	}));
 */
-    htmlcontent += "<div class='atonPopupDescriptionContainer' style='text-align:center'>Select data to load</div><br>";
-    htmlcontent += "<input id='rID' type='text' size='40' list='idRList' ></input>";
-    htmlcontent += "<datalist id='idRList'></datalist><br>";
+	return el;
+};
 
-	htmlcontent += "<div id='rLoad' class='atonBTN atonBTN-green atonBTN-horizontal'><img src='"+ATON.FE.PATH_RES_ICONS+"db.png'>LOAD</div>";
-	htmlcontent += "<div id='rClear' class='atonBTN atonBTN-red atonBTN-horizontal'><img src='"+ATON.FE.PATH_RES_ICONS+"trash.png'>CLEAR</div>";
+UI.panelRecords = ()=>{
+	let elListRecords = ATON.UI.createContainer({style: "margin-top: 8px"});
+	for (let r in APP._records) elListRecords.append( UI.createRecordItem(r) );
 
-    if ( !ATON.FE.popupShow(htmlcontent) ) return;
+	let elAddRecord = ATON.UI.createContainer();
 
-    $.get(APP.MKHET_API+"sessions/"+ APP.getSceneMerkhetID() +"/*", (data)=>{
+	ATON.REQ.get(APP.CAPTUREHUB_API+"sessions/"+ APP.getSceneMerkhetID() +"/*", (data)=>{
+		let rlist = [];
+
         for (let d in data){
 			let rid = data[d];
 
 			// Avoid duplicates
-			if (!APP._records[rid]) $("#idRList").append("<option>"+data[d]+"</option>");
-		}
-    });
-
-    $("#rLoad").click(()=>{
-        let rid = $("#rID").val();
-
-		if (rid.endsWith(".json")){
-			APP.loadDataAggregate(APP.MKHET_API+"aggregates/"+ APP._mksid +"/"+ATON.Utils.removeFileExtension(rid));
-			ATON.FE.popupClose();
-			return;
+			if (!APP._records[rid]) rlist.push(rid); //$("#idRList").append("<option>"+data[d]+"</option>");
 		}
 
-		APP.loadRecord(rid);
-		ATON.Photon.fireEvent("MKH_ActiveRecord", rid);
-        
-        ATON.FE.popupClose();
+		const numRecords = data.length;
+
+		let elIF = ATON.UI.createInputText({
+			list: rlist,
+			label: "Records",
+			placeholder: (numRecords > 0)? numRecords+" records available" : "No records available!"
+		});
+
+		let elInput = ATON.UI.getComponent(elIF, "input");
+		let dl = ATON.UI.getComponent(elIF, "datalist");
+
+		elIF.append( ATON.UI.createButton({
+			icon: "add",
+			classes: "btn-default",
+			onpress: ()=>{
+				let rid = elInput.value;
+				if (!rid) return;
+				if (rid.length < 2) return;
+
+				APP.loadRecord( rid, (r)=>{
+					//let R = APP._records[r];
+					elListRecords.append( UI.createRecordItem(rid) );
+
+					ATON.Photon.fireEvent("MKH_ActiveRecord", rid);
+					
+					// TODO: remove entry from datalist
+				});
+
+				elInput.value = "";
+			}
+		}));
+
+		elAddRecord.append( elIF );
+
     });
 
-	$("#rClear").click(()=>{
-		APP.clearRecords();
-
-		ATON.FE.popupClose();
-	});
+	UI.openToolPanel({
+        header: "Records",
+        body: ATON.UI.createContainer({
+            items:[
+				ATON.UI.createElementFromHTMLString("<p class='merkhet-text-block'>Please pick one or more records from the capture hub for visual inspection</p>"),
+				elAddRecord,
+                elListRecords
+            ]
+        })
+    });
 };
 
+UI.panelAggregates = ()=>{
+	let elAddAggregate = ATON.UI.createContainer();
 
-UI.popupProcess = ()=>{
-    let htmlcontent = "<div class='atonPopupTitle'>Compute</div>";
+	ATON.REQ.get(APP.CAPTUREHUB_API+"sessions/"+ APP.getSceneMerkhetID() +"/*", (data)=>{
+		let rlist = [];
 
-	htmlcontent += "Compute focal-fixations via voxel-based volume for all records loaded<br>"
-	htmlcontent += "<div id='rComputeFoc' class='atonBTN atonBTN-red atonBTN-horizontal'><img src='"+ATON.FE.PATH_RES_ICONS+"lp.png'>Compute Focal Fixations</div>";
+        for (let d in data){
+			let rid = data[d];
 
-	htmlcontent += "Compute positional fixations via voxel-based volume for all records loaded<br>"
-	htmlcontent += "<div id='rComputeLoc' class='atonBTN atonBTN-red atonBTN-horizontal'><img src='"+ATON.FE.PATH_RES_ICONS+"lp.png'>Compute Positional Fixations</div>";
+			// Avoid duplicates
+			if (rid.endsWith(".json")) rlist.push(rid);
+		}
 
-    if ( !ATON.FE.popupShow(htmlcontent) ) return;
+		let numRecords = rlist.length;
 
-	$("#rComputeFoc").click(()=>{
-		APP.Processor.computeFocalFixationsForLoadedRecords();
-/*
-		let vtex = APP.Processor._volumeFocalPoints.get3DTexture((v)=>{
-			if (!v) return 0;
+		let elIF = ATON.UI.createInputText({
+			list: rlist,
+			label: "Aggregates",
+			placeholder: (numRecords > 0)? numRecords+" aggregates available" : "No aggregates available!"
+		});
 
-			return 255;
-		})
+		let elInput = ATON.UI.getComponent(elIF, "input");
 
-		APP.uniforms.tVol.value = vtex;
-*/
-		ATON.FE.popupClose();
+		elIF.append( ATON.UI.createButton({
+			icon: "add",
+			classes: "btn-default",
+			onpress: ()=>{
+				let rid = elInput.value;
+				if (!rid) return;
+				if (rid.length < 2) return;
+
+				let agData = APP.CAPTUREHUB_API+"aggregates/"+ APP._mksid +"/"+ATON.Utils.removeFileExtension(rid);
+
+				APP.loadDataAggregate(agData, ()=>{
+
+					//elListRecords.append( UI.createRecordItem(rid) );
+					
+					// TODO: remove entry from datalist
+				});
+
+				ATON.Photon.fireEvent("MKH_Aggregate", agData);
+
+				elInput.value = "";
+			}
+		}));
+
+		elAddAggregate.append( elIF );
 	});
 
-	$("#rComputeLoc").click(()=>{
-		APP.Processor.computePositionalFixationsForLoadedRecords();
-		ATON.FE.popupClose();
-	});
+	UI.openToolPanel({
+        header: "Aggregates",
+        body: ATON.UI.createContainer({
+            items:[
+				ATON.UI.createElementFromHTMLString("<p class='merkhet-text-block'>Please pick one or more data aggregates generated by Procezo service for visual inspection</p>"),
+				elAddAggregate,
+
+				ATON.UI.createContainer({
+					items:[
+						ATON.UI.createButton({
+							icon: "trash",
+							text: "Clear Aggregates",
+							classes: "btn-default",
+							onpress: ()=>{
+								APP.clearAggregates();
+							}
+						})
+					],
+					classes:"d-grid gap-2"
+				})
+            ]
+        })
+    });
 };
 
-UI.popupMark = (M)=>{
+UI.panelCompute = ()=>{
+
+	UI.openToolPanel({
+        header: "Compute",
+        body: ATON.UI.createContainer({
+				classes:"d-grid gap-2",
+				items:[
+					ATON.UI.createElementFromHTMLString("<p class='merkhet-text-block'>Locally compute fixations via voxel-based volume for all records loaded</p>"),
+
+					ATON.UI.createButton({
+						icon: "bi-cpu",
+						text: "Focal Fixations",
+						classes: "btn-default",
+						onpress: ()=>{
+							APP.Processor.computeFocalFixationsForLoadedRecords();
+							//UI.closeToolPanel();
+						}
+					}),
+
+					ATON.UI.createButton({
+						icon: "bi-cpu",
+						text: "Positional Fixations",
+						classes: "btn-default",
+						onpress: ()=>{
+							APP.Processor.computePositionalFixationsForLoadedRecords();
+							//UI.closeToolPanel();
+						}
+					}),
+				],
+			})
+    });
+};
+
+UI.openAnnotateMark = (M)=>{
 	if (!M) return;
 
 	let R = APP.getActiveRecord();
@@ -145,16 +446,9 @@ UI.popupMark = (M)=>{
 
 	let m = R.getMarkIndex(M);
 
-    let htmlcontent = "<div class='atonPopupTitle'>Mark #"+m+" (Timestamp "+kd.time+")</div>";
+	let elTextArea = ATON.UI.createElementFromHTMLString("<textarea spellcheck='false' rows='4' cols='50'></textarea>");
 
-	htmlcontent += "<div id='markPOV' class='atonBTN atonBTN-horizontal'><img src='"+ATON.FE.PATH_RES_ICONS+"pov.png'>View</div>";
-
-	htmlcontent += "Annotation for this mark:<br>";
-	htmlcontent += "<textarea id='idMarkAnn' rows='4' cols='50'></textarea>";
-	htmlcontent += "<div id='btnMAnn' class='atonBTN atonBTN-green atonBTN-horizontal'><img src='"+ATON.FE.PATH_RES_ICONS+"note.png'>Save</div>";
-
-    if ( !ATON.FE.popupShow(htmlcontent) ) return;
-
+	// Retrieve previous annotation if any
 	R.getSemStorage((s)=>{
 		if (!s.bookmarks) return;
 
@@ -162,26 +456,57 @@ UI.popupMark = (M)=>{
 		if (!B) return;
 		if (!B.content) return;
 
-		$("#idMarkAnn").val(B.content);
+		elTextArea.value = B.content;
 	});
+	
+	UI.openToolPanel({
+		header: "Mark #"+m,
+		body: ATON.UI.createContainer({
+				classes:"d-grid gap-2",
+				items:[
+					ATON.UI.createElementFromHTMLString(`
+						<p class='merkhet-text-block'>
+							<b>Timestamp</b>: ${kd.time} (${APP.getMinutesString(kd.time)})
+						</p>
+					`),
 
-	$("#markPOV").click(()=>{
-		let pov = R.getPOVforMark(M);
+					ATON.UI.createButton({
+						icon: "pov",
+						text: "View",
+						classes: "btn-default",
+						onpress: ()=>{
+							let pov = R.getPOVforMark(M);
+							ATON.Nav.requestPOV(pov, 0.3);
+						}
+					}),
 
-		ATON.Nav.requestPOV(pov, 0.3);
-		//ATON.FE.popupClose();
-	});
+					ATON.UI.createElementFromHTMLString(`
+						<p class='merkhet-text-block'><br>
+						You can use this box below to freely annotate your thoughts for this specific time mark of the record "${R.rid}"
+						</p>
+					`),
 
-	$("#btnMAnn").click(()=>{
-		let content = $("#idMarkAnn").val();
-		content.trim();
+					elTextArea,
+					ATON.UI.createButton({
+						icon: "note",
+						text: "Annotate",
+						classes: "btn-default",
+						onpress: ()=>{
+							let content = elTextArea.value.trim();
 
-		if (content.length > 1){
-			R.saveBookmark(m, content);
-			ATON.FE.popupClose();
-		}
+							if (content.length > 1){
+								R.saveBookmark(m, content);
+								UI.closeToolPanel();
+							}
+						}
+					})
+
+				]
+		})
 	});
 };
+
+
 
 // Spatial UI
 //==================================================
@@ -209,7 +534,7 @@ UI.setupSpatial = ()=>{
 
     // wrist sui
     let pi2 = (Math.PI * 0.5);
-    UI.sToolbar.setPosition(-0.1,0,0.1).setRotation(-pi2,-pi2,pi2).setScale(0.5);
+    UI.sToolbar.setPosition(-0.1,0.05,0.1).setRotation(-pi2,0.0,pi2).setScale(0.5);
 
     UI.sToolbar.attachToRoot();
     UI.sToolbar.hide();

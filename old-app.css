@@ -1,0 +1,51 @@
+
+.mkhetTimeSliderContainer {
+    z-index: 110;
+    position: absolute;
+    
+    display: block;
+    width: 100%;
+    
+    bottom: 60px;
+    
+    margin: auto !important;
+    padding: 0px !important;
+    
+    text-align: center !important;
+}
+
+.tabRecordsGroup {
+    display: block;
+    width: 100%;
+}
+
+.tabRecord {
+    display: inline-block;
+    background-color: rgba(0,0,128, 0.5);
+
+    box-shadow: 0 0px 5px rgba(0,0,0, 0.5);
+    color: white;
+
+    vertical-align: middle;
+    text-align: center;
+    
+    border-radius: 5px;
+
+    padding: 12px;
+    margin: 2px;
+
+    height: 10px;
+    line-height: 10px;
+
+    text-decoration: none;
+    font-size: smaller;
+    text-shadow: none;
+
+    cursor: pointer;
+
+    backdrop-filter: blur(6px);
+}
+
+.tabRecord:hover {
+    box-shadow: 0 0px 5px rgba(255,255,255, 1);
+}

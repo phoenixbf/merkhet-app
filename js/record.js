@@ -30,6 +30,11 @@ constructor(rid){
     this._semStorageID = rid;
 }
 
+getColor(opacity){
+    if (opacity) return "rgba("+this._color.r*127+","+this._color.g*127+","+this._color.b*127+", "+opacity+")";
+    return this._color;
+}
+
 switch(b){
     if (!b){
         if (this.node) this.node.hide();
@@ -337,7 +342,7 @@ loadViaAPI( onComplete ){
 
     let rrid = ATON.Utils.removeFileExtension(self.rid);
 
-    $.get(APP.MKHET_API+"sessions/"+sid+"/"+rrid, (data)=>{
+    $.get(APP.CAPTUREHUB_API+"sessions/"+sid+"/"+rrid, (data)=>{
         if (data) self.generateFromCSVdata(data);
         
         if (onComplete) onComplete();

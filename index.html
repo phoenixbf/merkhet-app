@@ -36,11 +36,14 @@
     <meta name="theme-color" content="#000000" />
 
     <title>Merkhet</title>
-    <link rel="stylesheet" type="text/css" href="/res/css/aton.css">
+    <link rel="stylesheet" type="text/css" href="/vendors/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/vendors/bootstrap/css/bootstrap-icons/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" type="text/css" href="/res/css/main.css">
     <link rel="stylesheet" type="text/css" href="./app.css">
 
     <!-- Vendors -->
     <script type="text/javascript" src="/vendors/vendors.min.js"></script>
+    <script type="text/javascript" src="/vendors/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script type="text/javascript" src="/dist/THREE.bundle.js"></script>
     <script type="text/javascript" src="/dist/ATON.min.js"></script>
 
@@ -48,35 +51,27 @@
 	<script type="module" src="js/main.js"></script>
 </head>
 
-<body oncontextmenu="return false;">
-    <!-- Top Toolbar -->
-    <div id="idTopToolbar" class="atonToolbar atonToolbar-top-left"></div>
+<body>
+    <div id="sideToolbar" class="aton-toolbar-left merkhet-main-toolbar"></div>
 
-    <!-- Time Slider -->
-    <div class="mkhetTimeSliderContainer">
-        <div id="blockRecord">
-            <div class="tabRecordsGroup" id="recTabs"></div>
-            <div class="atonKeyword">Time: <b><span id="tValue">0.0</span></b></div>
-            <div class="atonKeyword"><input id="idCamLock" type="checkbox" />Viewpoint Lock</div>
-            <div class="atonKeyword"><input id="idPathVis" type="checkbox" checked />Path</div>
-            <!-- <input id="tRad" type="number" min="0" max="10.0" step="0.01" value="0.2" /> -->
-            <br>
-            <input id='tSlider' list='rBookmarks' type='range' min='0.0' max='60.0' step='0.05' style="width: 90%;">
-            <!-- <datalist id="rBookmarks"></datalist> -->
+    <div class="merkhet-bottom-container" id="bottomPlate">
+
+        <div class="merkhet-timeline-container" id="timeline">
         </div>
+
+<!--         <div class="merkhet-timeline-container"> 
+            <div id="line" class="merkhet-timeline">
+                <div class="merkhet-timeline-circle" id="circle0" style="left: 0%;"><div class="merkhet-timeline-mark-popup">Mark 0</div></div>
+            </div>
+            <div id="span" class="merkhet-timeline-mark">Mark Placeholder</div>
+        </div> -->
+
+        <div id="bottomToolbar" class="merkhet-bottom-toolbar"></div>
     </div>
 
-	<!-- Bottom Toolbar -->
-	<div id="idBottomToolbar" class="atonToolbar atonToolbar-bottom"></div>
+    <div id="userToolbar" class="merkhet-user-toolbar"></div>
 
-    <!-- Main Popup -->
-    <div id="idPopup" class="atonPopupContainer" style="display:none;"></div>
-
-    <!-- Loader -->
-    <div id="idLoader" class="atonCenterLoader" style="display:none;"></div>
-
-    <!-- Powered by -->
-    <div id='idPoweredBy' class="atonToolbar atonToolbar-bottom poweredBy" >
-        Powered by <a href="https://osiris.itabc.cnr.it/aton/" target="_blank">ATON</a>
+    <div class="aton-poweredby" style="right:0px; left:auto;">
+        Powered by <a href="https://aton.ispc.cnr.it/site/" target="_blank">ATON</a>
     </div>
 </body>

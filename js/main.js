@@ -10,7 +10,7 @@ import UI from "./ui.js";
 let APP = ATON.App.realize();
 window.APP = APP;
 
-APP.MKHET_API  = undefined;
+APP.CAPTUREHUB_API  = undefined;
 APP.DIR_ASSETS = APP.basePath + "assets/";
 APP.MARK_SCALE = 0.2;
 
@@ -32,6 +32,15 @@ APP.getSceneMerkhetID = (sid)=>{
 	return sid.replace("/","-");
 };
 
+APP.getMinutesString = (seconds)=>{
+	let minutes = Math.floor(seconds / 60);
+	seconds = Math.floor(seconds - (minutes * 60));
+
+	if (seconds < 10) seconds = "0"+seconds;
+
+	return minutes+":"+seconds;
+};
+
 // APP.setup() is required for web-app initialization
 // You can place here UI setup (HTML), events handling, etc.
 APP.setup = ()=>{
@@ -46,9 +55,12 @@ APP.setup = ()=>{
 		new THREE.Vector3(-APP._panoScale,-APP._panoScale,-APP._panoScale),
 		new THREE.Vector3(APP._panoScale,APP._panoScale,APP._panoScale)
 	);
-
+/*
     ATON.FE.realize(); // Realize the base front-end
 	ATON.FE.addBasicLoaderEvents(); // Add basic events handling
+*/
+    ATON.realize();
+    ATON.UI.addBasicEvents();
 
 	APP.loadConfig();
 
@@ -60,7 +72,7 @@ APP.setup = ()=>{
 	let sid = APP.params.get("s");
 	if (!sid) return;
 
-	ATON.FE.loadSceneID(sid);
+	APP.loadScene(sid);
 
 	APP.gRecords = ATON.createUINode("records");
 	APP.gRecords.attachToRoot();
@@ -76,6 +88,8 @@ APP.setup = ()=>{
 
 	ATON._bqSem = true;
 
+	APP._bViewLock = false;
+
 	//ATON.SUI.showSelector(false);
 
 	APP.setupEvents();
@@ -84,7 +98,7 @@ APP.setup = ()=>{
 	APP._mksid = APP.getSceneMerkhetID(sid);
 
 	let procData = APP.params.get("a");
-	if (procData) APP.loadDataAggregate(APP.MKHET_API+"aggregates/"+ APP._mksid +"/"+procData);
+	if (procData) APP.loadDataAggregate(APP.CAPTUREHUB_API+"aggregates/"+ APP._mksid +"/"+procData);
 
 	APP._hoverMark = undefined;
 };
@@ -97,7 +111,7 @@ APP.loadConfig = ()=>{
         APP.cdata = data;
 		if (APP.cdata.capturehub){
 			if (!APP.cdata.capturehub.endsWith("/")) APP.cdata.capturehub += "/";
-			APP.MKHET_API = APP.cdata.capturehub + "api/";
+			APP.CAPTUREHUB_API = APP.cdata.capturehub + "api/";
 		}
 
         ATON.fireEvent("APP_ConfigLoaded");
@@ -426,6 +440,8 @@ APP.setActiveRecord = (rid)=>{
 
 	console.log("Active Record: "+rid);
 
+	APP.UI.buildTimelineForActiveRecord();
+
 	APP.params.set('r', rid);
 	history.replaceState(null, null, "?" + APP.params.toString());
 };
@@ -439,23 +455,30 @@ APP.getActiveRecord = ()=>{
 	return APP._records[APP._currRID];
 };
 
-APP.loadRecord = (rid)=>{
+APP.loadRecord = (rid, onComplete)=>{
+/* 	if (APP._records[rid]){
+		
+		return;
+	} */
 
 	let R = new APP.Record(rid);
 	R.loadViaAPI(()=>{
 		let strcol = "rgba("+R._color.r*127+","+R._color.g*127+","+R._color.b*127+",0.5)";
 
 		console.log(R._tRangeMin+","+R._tRangeMax);
-
+/*
 		$("#tSlider").attr("min", R._tRangeMin);
 		$("#tSlider").attr("max", R._tRangeMax);
 		$("#tSlider").val(R._tRangeMin);
 
 		$("#recTabs").append("<div id='tabrec-"+rid+"' class='tabRecord' style='background-color: "+strcol+"' onclick=\"APP.setActiveRecordBroadcast('"+rid+"')\">"+rid+"</div>");
+*/
 
 		APP._records[rid] = R;
 
 		APP.setActiveRecord(rid);
+
+		if (onComplete) onComplete(rid);
 	});
 };
 
@@ -491,13 +514,13 @@ APP.setupEvents = ()=>{
 
 	ATON.on("Tap", (e)=>{
 		if (APP._hoverMark){
-			APP.UI.popupMark(APP._hoverMark);
+			APP.UI.openAnnotateMark(APP._hoverMark);
 			return;
 		}
 
 		let annMark = ATON.getHoveredSemanticNode();
 		if (annMark){
-			APP.UI.popupMark( annMark.userData.mark );
+			APP.UI.openAnnotateMark( annMark.userData.mark );
 		}
 
 	});
@@ -535,7 +558,7 @@ APP.setupEvents = ()=>{
 
     ATON.on("XRcontrollerConnected", (c)=>{
         if (c === ATON.XR.HAND_L){
-            ATON.XR.controller1.add(APP.UI.sToolbar);
+            ATON.XR.getSecondaryController().add(APP.UI.sToolbar);
             APP.UI.sToolbar.show();  
         }
 	});
@@ -545,22 +568,24 @@ APP.setupEvents = ()=>{
         let S = ATON.getSemanticNode(semid);
         if (!S) return;
 
-		let ud = S.userData;
-		if (!ud){
-			ATON.FE.showSemLabel(semid);
-			ATON.FE._bSem = true;
-	
+		//let ud = S.userData;
+		let mark = S.userData.mark;
+		if (!mark){
+			ATON.UI.showSemLabel(semid);
+			ATON.SUI.setInfoNodeText(semid);
+
 			S.highlight();
 			return;
 		}
 
-		let mark = ud.mark;
-		if (!mark) return;
+		//let mark = ud.mark;
+		//if (!mark) return;
 
 		let m = mark.userData.i;
 
-        ATON.FE.showSemLabel("#"+m+" (T: "+mark.userData.time+")");
-        ATON.FE._bSem = true;
+		let marktxt = "#"+m+" (T: "+mark.userData.time+")";
+        ATON.UI.showSemLabel(marktxt);
+		ATON.SUI.setInfoNodeText(marktxt);
 
         S.highlight();
         
@@ -573,8 +598,7 @@ APP.setupEvents = ()=>{
         let S = ATON.getSemanticNode(semid);
         if (!S) return;
 
-        ATON.FE.hideSemLabel();
-        ATON.FE._bSem = false;
+        ATON.UI.hideSemLabel();
 
         S.restoreDefaultMaterial();
 
@@ -598,14 +622,21 @@ APP.setupEvents = ()=>{
 
 		t = parseFloat(t);
 
-		$("#tSlider").val(t);
-		$("#tValue").html(t);
+/* 		$("#tSlider").val(t);
+		$("#tValue").html(t); */
+		
+		//TODO:
+		//APP.UI.
 
 		APP.setTime(t);
 	});
 
 	ATON.Photon.on("MKH_ActiveRecord", rid => {
 		APP.setActiveRecord(rid);
+	});
+
+	ATON.Photon.on("MKH_Aggregate", agData => {
+		APP.loadDataAggregate(agData);
 	});
 };
 
@@ -684,8 +715,12 @@ APP.setupScene = ()=>{
 /*
 	Data Aggregates
 ====================================*/
-APP.loadDataAggregate = (path)=>{
+APP.loadDataAggregate = (path, onComplete)=>{
+	ATON.UI.showCenteredOverlay();
+
 	$.getJSON( path, ( data )=>{
+		ATON.UI.hideCenteredOverlay();
+
         console.log("Loaded density data: "+path);
 
 		let points = data.points;
@@ -769,9 +804,8 @@ APP.loadDataAggregate = (path)=>{
 				let text = "Density: "+d.toFixed(4);
 				console.log(text);
 
-				ATON.FE.showSemLabel(text);
+				ATON.UI.showSemLabel(text);
 				ATON.SUI.setInfoNodeText(text);
-				ATON.FE._bSem = true;
             });
 
 			K.setOnLeave(()=>{
@@ -779,14 +813,15 @@ APP.loadDataAggregate = (path)=>{
 				//mark.scale.setScalar(scale);
 				trigger.material = ATON.MatHub.materials.fullyTransparent;
 
-				ATON.FE.hideSemLabel();
-				ATON.FE._bSem = false;
+				ATON.UI.hideSemLabel();
 			});
 
 			K.attachTo(APP.gAggregates);
 
 			K.enablePicking();
 		}
+
+		if (onComplete) onComplete();
 	});
 };
 

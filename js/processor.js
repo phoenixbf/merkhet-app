@@ -229,9 +229,8 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
             let text = "Focal Fixation - Hits:"+ v.data.hits;
             console.log(text);
 
-            ATON.FE.showSemLabel(text);
+            ATON.UI.showSemLabel(text);
             ATON.SUI.setInfoNodeText(text);
-            ATON.FE._bSem = true;
         });
 /*
         K.setOnSelect(()=>{
@@ -243,8 +242,7 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
         K.setOnLeave(()=>{
             trigger.material = ATON.MatHub.materials.fullyTransparent;
 
-            ATON.FE.hideSemLabel();
-            ATON.FE._bSem = false;
+            ATON.UI.hideSemLabel();
         });
 
         K.userData.hits = mi;
@@ -403,16 +401,14 @@ Processor.computePositionalFixationsForLoadedRecords = ()=>{
             let text = "Location Fixation - Hits:"+ v.data.hits;
             console.log(text);
 
-            ATON.FE.showSemLabel(text);
+            ATON.UI.showSemLabel(text);
             ATON.SUI.setInfoNodeText(text);
-            ATON.FE._bSem = true;
         });
 
         K.setOnLeave(()=>{
             trigger.material = ATON.MatHub.materials.fullyTransparent;
 
-            ATON.FE.hideSemLabel();
-            ATON.FE._bSem = false;
+            ATON.UI.hideSemLabel();
         });
 
         K.userData.hits = mi;
