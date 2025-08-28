@@ -5,6 +5,18 @@
     --aton-colors-accent-rgb: 255,255,255;
 }
 
+.merkhet-logo {
+    width: 200px;
+    height: auto;
+}
+
+[data-bs-theme=light] .merkhet-logo {
+    filter: none;
+}
+[data-bs-theme=dark] .merkhet-logo {
+    filter: invert(100%);
+}
+
 .merkhet-text-block {
     font-size: smaller;
     text-align: justify;
@@ -47,11 +59,11 @@
     
     text-align: center;
 
-    background-color: rgba(var(--bs-body-bg-rgb), 0.5) !important;
+/*     background-color: rgba(var(--bs-body-bg-rgb), 0.5) !important;
     border-radius: var(--bs-border-radius);
 
     -webkit-backdrop-filter: blur(var(--aton-blur-radius));
-    backdrop-filter: blur(var(--aton-blur-radius));
+    backdrop-filter: blur(var(--aton-blur-radius)); */
 }
 
 .merkhet-bottom-toolbar {
@@ -59,6 +71,12 @@
     margin: var(--merkhet-ui-margin);
 
     margin: 0px;
+
+    background-color: rgba(var(--bs-body-bg-rgb), 0.5) !important;
+    border-radius: var(--bs-border-radius);
+
+    -webkit-backdrop-filter: blur(var(--aton-blur-radius));
+    backdrop-filter: blur(var(--aton-blur-radius));
 }
 
 .merkhet-side-panel {
@@ -96,11 +114,13 @@
 
 .merkhet-timeline-container {
     display: block;
+    
     width: 100%;
+
     text-align: center;
 
     padding: 10px;
-    margin: 0px;
+    margin: auto;
 }
 
 .merkhet-timeline-slider {
@@ -112,8 +132,17 @@
 }
 
 .merkhet-timeline-info {
-    display: block;
+    display: inline-block;
     font-size: small;
+
+    padding: 4px;
+    margin-bottom: 4px;
+
+    background-color: rgba(var(--bs-body-bg-rgb), 0.5);
+    border-radius: var(--bs-border-radius);
+
+    -webkit-backdrop-filter: blur(var(--aton-blur-radius));
+    backdrop-filter: blur(var(--aton-blur-radius));
 }
 
 .merkhet-timeline-record {

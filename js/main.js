@@ -70,7 +70,10 @@ APP.setup = ()=>{
 	APP.Processor.init();
 
 	let sid = APP.params.get("s");
-	if (!sid) return;
+	if (!sid){
+		APP.UI.modalMerkhet();
+		return;
+	}
 
 	APP.loadScene(sid);
 
@@ -254,9 +257,12 @@ APP.setupAssets = ()=>{
 
 	// Records colors
 	APP.recColors = [
-		new THREE.Color(0,0,1),
-		new THREE.Color(1,0,1),
-		new THREE.Color(0,1,1),
+		new THREE.Color(0.5,0.5,1),
+		new THREE.Color(1,0.5,1),
+		new THREE.Color(0.5,1,1),
+		new THREE.Color(0.5,1,0.5),
+		new THREE.Color(1,1,0.5),
+		new THREE.Color(1,0,0.5),
 	];
 	
 	APP.recSemMats = [];

@@ -33,9 +33,11 @@ UI.updateInfoElementFromRecord = (el, R,t)=>{
 	let rid  = rv[1];
 
 	el.innerHTML = `
-		<div class='merkhet-timeline-record' style='background-color:${R.getColor(0.3)}'>${date}_<b>${rid}</b></div>
+		<div class='merkhet-timeline-record' style='background-color:${R.getColor(0.5)}'>${date}_<b>${rid}</b></div>
 		<div style='white-space: nowrap; display:inline-block'><b>Time</b>: ${t.toFixed(2)} | <b>Duration</b>: ${APP.getMinutesString(R._tRangeD)} | <b>Date</b>: ${date}</div>
 	`;
+
+	//el.style.backgroundColor = R.getColor(0.2);
 };
 
 UI.buildTimelineForActiveRecord = ()=>{
@@ -149,6 +151,25 @@ UI.createViewLockButton = ()=>{
 /*
     Modals
 =====================================*/
+
+UI.modalMerkhet = ()=>{
+	ATON.UI.showModal({
+		header: "Merkhet",
+		body: ATON.UI.createContainer({
+			items:[
+				ATON.UI.createElementFromHTMLString(`
+					<div style='text-align:center'>
+						<img src='${APP.DIR_ASSETS}merkhet.png' class='merkhet-logo'><br><br>
+						<p style='text-align:justify'>
+						Merkhet is an open-source Collaborative Immersive Analytics WebXR toolkit, developed under <a href='https://www.h2iosc.cnr.it/' target='_blank'>H2IOSC project</a> as part of task 7.7 (Immersive Analytics). It is used in conjunction with <a href='https://github.com/phoenixbf/merkhet-plugin' target='_blank'>Merkhet plugin</a> for ATON, specifically dedicated to capture and track remote users' interactive sesssions.
+						</p>
+					</div>
+				`)
+			]
+		})
+	})
+};
+
 
 UI.modalUser = ()=>{
 
