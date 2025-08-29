@@ -168,6 +168,9 @@ generateFromCSVdata(data){
     let matfov = APP.matFOV.clone();
     matfov.color = this._color;
 
+    this._matAnn = APP.matSpriteAnnotation.clone();
+    this._matAnn.color = this._color;
+
     // Header
     let H = rows[0];
     H = H.split(",");
@@ -314,14 +317,15 @@ generateFromCSVdata(data){
     this.node.attachTo(APP.gRecords);
 
     // Path
+/*
     let gPath = new THREE.BufferGeometry().setFromPoints( path );
     ///let gPath = new THREE.LineGeometry().setFromPoints( path );
-    let mPath = new THREE.Line( gPath, matLine );
-    mPath.raycast = APP.VOID_CAST;
+    this.meshPath = new THREE.Line( gPath, matLine );
+    this.meshPath.raycast = APP.VOID_CAST;
     
-    this.node.add(mPath);
-/*
-    let nsegs = path.length * 4;
+    this.node.add(this.meshPath);
+*/
+    let nsegs = path.length * 2;
     let pathrad = 0.01; //0.03;
     if (APP._bPano) pathrad = 0.3;
 
@@ -330,7 +334,9 @@ generateFromCSVdata(data){
     this.meshPath.raycast = APP.VOID_CAST;
 
     this.node.add(this.meshPath);
-*/
+
+
+
     this._tRangeD = (this._tRangeMax - this._tRangeMin);
 
     return this;
@@ -411,20 +417,31 @@ getOrCreateBookmark(i){
     let r = 0.2;
     if (APP._bPano) r *= 20.0;
 
-    B = ATON.SemFactory.createSphere(undefined, M.position, r);
+    B = ATON.SemFactory.createSphere(undefined, new THREE.Vector3(0,0,0), r);
+    B.position.copy(M.position);
     B.attachTo(this._gBookmarks);
 
     B.setDefaultAndHighlightMaterials(this._matSem, APP.recSemMatHL);
     B.restoreDefaultMaterial();
 
+    let deco = new THREE.Sprite( this._matAnn );
+    deco.scale.set(0.5,0.5,0.5);
+    deco.renderOrder = 50;
+    B.add(deco);
+
     B.userData.mark = M;
+
+    B.setOnSelect(()=>{
+        let pov = this.getPOVforMark(M);
+		ATON.Nav.requestPOV(pov, 0.3);
+    });
 
     this._semAnnNodes[i] = B; // Register
 
     return B;
 }
 
-saveBookmark(i, content, audio){
+saveBookmark(i, content, audio, onComplete){
     if (!content) return;
     if (content.length < 1) return; 
 
@@ -435,7 +452,28 @@ saveBookmark(i, content, audio){
     O.bookmarks[i] = {};
     O.bookmarks[i].content = content;
 
-    APP.addToStorage( this._semStorageID, O ); //.then(...)
+    APP.addToStorage( this._semStorageID, O ).then(()=>{
+        if (onComplete) onComplete();
+    });
+}
+
+removeBookmark(i, onComplete){
+    let M = this.getMark(i);
+    if (!M) return;
+
+    let B = this._semAnnNodes[i];
+    B.userData.mark = undefined;
+    B.removeChildren();
+
+    this._semAnnNodes[i] = undefined;
+
+    let O = {};
+    O.bookmarks = {};
+    O.bookmarks[i] = {};
+
+    APP.deleteFromStorage( this._semStorageID, O ).then(()=>{
+        if (onComplete) onComplete();
+    });
 }
 
 }

@@ -184,7 +184,7 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 
 		//H.position.copy(v.loc);
         if (nor){
-            let of = vs * 0.8;
+            let of = vs * 0.1;
             H.position.x -= nor.x * of;
             H.position.y -= nor.y * of;
             H.position.z -= nor.z * of;
@@ -199,7 +199,7 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
         H.renderOrder = mi;
 
 
-        let K = ATON.createSemanticNode("focfix"+v.i+"_"+v.j+"_"+v.k);
+        let K = ATON.createUINode("focfix"+v.i+"_"+v.j+"_"+v.k);
         K.position.copy(v.loc);
         K.add(H);
 
@@ -232,13 +232,13 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
             ATON.UI.showSemLabel(text);
             ATON.SUI.setInfoNodeText(text);
         });
-/*
+
         K.setOnSelect(()=>{
             ATON.Nav.requestPOV(
                 new ATON.POV().setTarget(v.loc).setPosition(v.loc.x-nor.x, v.loc.y-nor.y, v.loc.z-nor.z)
             );
         });
-*/
+
         K.setOnLeave(()=>{
             trigger.material = ATON.MatHub.materials.fullyTransparent;
 
@@ -383,7 +383,7 @@ Processor.computePositionalFixationsForLoadedRecords = ()=>{
 		H.scale.set(s,s,s);
         H.renderOrder = mi;
 
-        let K = ATON.createSemanticNode("posfix"+v.i+"_"+v.j+"_"+v.k);
+        let K = ATON.createUINode("posfix"+v.i+"_"+v.j+"_"+v.k);
         K.position.copy(v.loc);
         K.add(H);
 

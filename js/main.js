@@ -55,10 +55,7 @@ APP.setup = ()=>{
 		new THREE.Vector3(-APP._panoScale,-APP._panoScale,-APP._panoScale),
 		new THREE.Vector3(APP._panoScale,APP._panoScale,APP._panoScale)
 	);
-/*
-    ATON.FE.realize(); // Realize the base front-end
-	ATON.FE.addBasicLoaderEvents(); // Add basic events handling
-*/
+
     ATON.realize();
     ATON.UI.addBasicEvents();
 
@@ -99,6 +96,7 @@ APP.setup = ()=>{
 	APP.setupAssets();
 
 	APP._mksid = APP.getSceneMerkhetID(sid);
+	APP._cses  = sid+"-merkhet";
 
 	let procData = APP.params.get("a");
 	if (procData) APP.loadDataAggregate(APP.CAPTUREHUB_API+"aggregates/"+ APP._mksid +"/"+procData);
@@ -143,6 +141,21 @@ APP.setupAssets = ()=>{
 */
 	APP.matSpriteCursor = new THREE.SpriteMaterial({ 
         map: TL.load( APP.DIR_ASSETS + "cursor.png" ),
+        
+		transparent: true,
+		forceSinglePass: true,
+        //opacity: 0.5,
+        
+		color: ATON.MatHub.colors.white,
+        depthWrite: false, 
+        //depthTest: false
+        
+		//blending: THREE.AdditiveBlending
+		toneMapped: false
+    });
+
+	APP.matSpriteAnnotation = new THREE.SpriteMaterial({ 
+        map: TL.load( APP.DIR_ASSETS + "annotation.png" ),
         
 		transparent: true,
 		forceSinglePass: true,
@@ -398,34 +411,12 @@ APP.detectPanoramicScene = ()=>{
 	return true;
 };
 
-APP.setActiveRecord = (rid)=>{
-	let R = APP._records[rid];
-	console.log(rid)
+APP.reloadAnnotationsForActiveRecord = (onComplete)=>{
+	let R = APP.getActiveRecord();
+	if (!R) return;
 
-	if (!R){
-		APP.loadRecord(rid);
-		return;
-	}
-
-	for (let r in APP._records){
-		if (r!==rid) APP._records[r].switch(false);
-	}
-
-	APP._currRID = rid;
-	APP._hoverMark = undefined;
-
-	$("#tSlider").attr("min", R._tRangeMin);
-	$("#tSlider").attr("max", R._tRangeMax);
-	$("#tSlider").val(R._tRangeMin);
-	$("#rBookmarks").html("");
-
-	R.switch(true);
-
-	APP.rewindTimeForActiveRecord();
-
-	// Semantic
 	let numMarks = R.marks.children.length;
-	R.setSemStorageID( APP.getRecordSemStorageID(rid) );
+	R.setSemStorageID( APP.getRecordSemStorageID(APP._currRID) );
 	R.getSemStorage((s)=>{
 		//let bopts = "";
 		for (let b in s.bookmarks){
@@ -441,8 +432,42 @@ APP.setActiveRecord = (rid)=>{
 */
 		}
 
-		//$("#rBookmarks").html(bopts);
+		if (onComplete) onComplete();
 	});
+};
+
+APP.setActiveRecord = (rid)=>{
+	let R = APP._records[rid];
+	console.log(rid)
+
+	if (!R){
+		//APP.loadRecord(rid);
+		//APP.rewindTimeForActiveRecord();
+		return;
+	}
+
+	if (rid === APP._currRID) return;
+
+	for (let r in APP._records){
+		if (r!==rid) APP._records[r].switch(false);
+	}
+
+	APP._currRID   = rid;
+	APP._hoverMark = undefined;
+
+	R.switch(true);
+
+/* 	$("#tSlider").attr("min", R._tRangeMin);
+	$("#tSlider").attr("max", R._tRangeMax);
+	$("#tSlider").val(R._tRangeMin);
+	$("#rBookmarks").html("");
+ */
+	
+
+	APP.rewindTimeForActiveRecord();
+
+	// Semantic
+	APP.reloadAnnotationsForActiveRecord();
 
 	console.log("Active Record: "+rid);
 
@@ -454,10 +479,12 @@ APP.setActiveRecord = (rid)=>{
 
 APP.setActiveRecordBroadcast = (rid)=>{
 	APP.setActiveRecord(rid);
-	ATON.Photon.fireEvent("MKH_ActiveRecord", rid);
+	ATON.Photon.fire("MKH_ActiveRecord", rid);
 };
 
 APP.getActiveRecord = ()=>{
+	if (!APP._currRID) return undefined;
+
 	return APP._records[APP._currRID];
 };
 
@@ -469,8 +496,6 @@ APP.loadRecord = (rid, onComplete)=>{
 
 	let R = new APP.Record(rid);
 	R.loadViaAPI(()=>{
-		let strcol = "rgba("+R._color.r*127+","+R._color.g*127+","+R._color.b*127+",0.5)";
-
 		console.log(R._tRangeMin+","+R._tRangeMax);
 /*
 		$("#tSlider").attr("min", R._tRangeMin);
@@ -621,6 +646,7 @@ APP.setupEvents = ()=>{
 	
 	ATON.on("VRC_IDassigned", (uid)=>{
 		ATON.Photon.setUsername("Analyst_"+uid);
+		//UI._elCollabBTN.style
 	});
 
 	ATON.Photon.on("MKH_Time", (t)=>{
@@ -638,7 +664,13 @@ APP.setupEvents = ()=>{
 	});
 
 	ATON.Photon.on("MKH_ActiveRecord", rid => {
-		APP.setActiveRecord(rid);
+		//APP.setActiveRecord(rid);
+		APP.loadRecord(rid);
+	});
+
+	ATON.Photon.on("MKH_Annotation", D => {
+		//APP.setActiveRecord(D.rid);
+		APP.loadRecord(D.rid);
 	});
 
 	ATON.Photon.on("MKH_Aggregate", agData => {
@@ -856,7 +888,7 @@ APP.update = ()=>{
 
 			APP.setTime(t);
 
-			ATON.Photon.fireEvent("MKH_Time", t.toFixed(2));
+			ATON.Photon.fire("MKH_Time", t.toFixed(2));
 		}
 
 	}

@@ -28,13 +28,17 @@ UI.updateInfoElementFromRecord = (el, R,t)=>{
 	if (!t) t = R._tRangeMin;
 	if (!R) return;
 
-	let rv = ATON.Utils.removeFileExtension(R.rid).split("_");
+/* 	let rv = ATON.Utils.removeFileExtension(R.rid).split("_");
 	let date = rv[0];
-	let rid  = rv[1];
+	let rid  = rv[1]; */
+
+	let rid = ATON.Utils.removeFileExtension(R.rid);
+
+	//| <b>Date</b>: ${date}
 
 	el.innerHTML = `
-		<div class='merkhet-timeline-record' style='background-color:${R.getColor(0.5)}'>${date}_<b>${rid}</b></div>
-		<div style='white-space: nowrap; display:inline-block'><b>Time</b>: ${t.toFixed(2)} | <b>Duration</b>: ${APP.getMinutesString(R._tRangeD)} | <b>Date</b>: ${date}</div>
+		<div class='merkhet-timeline-record' style='background-color:${R.getColor(0.5)}'><b>${rid}</b></div>
+		<div style='white-space: nowrap; display:inline-block'><b>Time</b>: ${t.toFixed(2)} | <b>Duration</b>: ${APP.getMinutesString(R._tRangeD)}</div>
 	`;
 
 	//el.style.backgroundColor = R.getColor(0.2);
@@ -70,7 +74,7 @@ UI.buildTimelineForActiveRecord = ()=>{
 
 			UI.updateInfoElementFromRecord(elInfo,R,t);
 			
-			ATON.Photon.fireEvent("MKH_Time", t);
+			ATON.Photon.fire("MKH_Time", t);
 		}
 	});
 
@@ -83,6 +87,7 @@ UI.buildTimelineForActiveRecord = ()=>{
 
 UI.buildToolbar = ()=>{
     UI._elBottomToolbar.append(
+		ATON.UI.createButtonFullscreen(),
         ATON.UI.createButtonHome(),
 		UI.createViewLockButton()
     );
@@ -95,7 +100,7 @@ UI.buildToolbar = ()=>{
         	onpress: UI.modalMerkhet
     	}),
 
-		ATON.UI.createButtonFullscreen(),
+		UI.createCollaborateButton(),
 
 		ATON.UI.createButton({
         	icon: "bi-activity",
@@ -130,16 +135,45 @@ UI.createUserButton = ()=>{
     return UI._elUserBTN;
 };
 
+UI.createCollaborateButton = ()=>{
+	UI._elCollabBTN = ATON.UI.createButton({
+		icon: "vrc",
+		tooltip: "Collaborate with remote analysts",
+		onpress: ()=>{
+			if (ATON.Photon.isConnected()){
+				ATON.Photon.disconnect();
+				UI._elCollabBTN.classList.remove("aton-btn-highlight");
+			}
+			else {
+				if (!APP._cses) return;
+
+				ATON.Photon.connect(APP._cses);
+				UI._elCollabBTN.classList.add("aton-btn-highlight");
+			}
+		}
+	});
+
+	return UI._elCollabBTN;
+};
+
 UI.createViewLockButton = ()=>{
 	let el = ATON.UI.createButton({
 		icon: "bi-lock-fill",
 		onpress: ()=>{
 			if (!APP._bViewLock){
 				el.classList.add("aton-btn-highlight");
+				
+				let R = APP.getActiveRecord(); 
+				if (R) R.meshPath.visible = false;
+
 				APP._bViewLock = true;
 			}
 			else {
 				el.classList.remove("aton-btn-highlight");
+
+				let R = APP.getActiveRecord(); 
+				if (R) R.meshPath.visible = true;
+
 				APP._bViewLock = false;
 			}
 		}
@@ -153,6 +187,8 @@ UI.createViewLockButton = ()=>{
 =====================================*/
 
 UI.modalMerkhet = ()=>{
+	UI.closeToolPanel();
+
 	ATON.UI.showModal({
 		header: "Merkhet",
 		body: ATON.UI.createContainer({
@@ -191,6 +227,8 @@ UI.modalUser = ()=>{
                 })
             );
 
+			UI.closeToolPanel();
+
             ATON.UI.showModal({
                 header: u.username,
                 body: elBody
@@ -198,6 +236,8 @@ UI.modalUser = ()=>{
         },
         // Not logged
         ()=>{
+			UI.closeToolPanel();
+
             ATON.UI.showModal({
                 header: "Analyst",
                 body: ATON.UI.createLoginForm({
@@ -272,11 +312,14 @@ UI.createRecordItem = (rid)=>{
 		size: "small",
 		onpress: ()=>{
 			APP.setActiveRecord(rid);
+			ATON.Photon.fire("MKH_ActiveRecord", rid);
 		}
 	}));
 
 	el.append( elActionsC );
 	el.append( rname );
+
+	//if (rid === APP._currRID) el.classList.add("merkhet-record-active");
 /*
 	el.append( ATON.UI.createButton({
 		text: rid,
@@ -323,10 +366,10 @@ UI.panelRecords = ()=>{
 				if (rid.length < 2) return;
 
 				APP.loadRecord( rid, (r)=>{
-					//let R = APP._records[r];
+					//APP.setActiveRecord(rid);
 					elListRecords.append( UI.createRecordItem(rid) );
 
-					ATON.Photon.fireEvent("MKH_ActiveRecord", rid);
+					ATON.Photon.fire("MKH_ActiveRecord", rid);
 					
 					// TODO: remove entry from datalist
 				});
@@ -343,7 +386,7 @@ UI.panelRecords = ()=>{
         header: "Records",
         body: ATON.UI.createContainer({
             items:[
-				ATON.UI.createElementFromHTMLString("<p class='merkhet-text-block'>Please pick one or more records from the capture hub for visual inspection</p>"),
+				ATON.UI.createElementFromHTMLString("<p class='merkhet-text-block'>Please pick one or more records from the capture hub for analysis and visual inspection</p>"),
 				elAddRecord,
                 elListRecords
             ]
@@ -391,7 +434,7 @@ UI.panelAggregates = ()=>{
 					// TODO: remove entry from datalist
 				});
 
-				ATON.Photon.fireEvent("MKH_Aggregate", agData);
+				ATON.Photon.fire("MKH_Aggregate", agData);
 
 				elInput.value = "";
 			}
@@ -469,6 +512,51 @@ UI.openAnnotateMark = (M)=>{
 
 	let elTextArea = ATON.UI.createElementFromHTMLString("<textarea spellcheck='false' rows='4' cols='50'></textarea>");
 
+	let elBody = ATON.UI.createContainer({
+		classes:"d-grid gap-2",
+		items:[
+			ATON.UI.createElementFromHTMLString(`
+				<p class='merkhet-text-block'>
+					<b>Timestamp</b>: ${kd.time} (${APP.getMinutesString(kd.time)})
+				</p>
+			`),
+
+			ATON.UI.createButton({
+				icon: "pov",
+				text: "View",
+				classes: "btn-default",
+				onpress: ()=>{
+					let pov = R.getPOVforMark(M);
+					ATON.Nav.requestPOV(pov, 0.3);
+				}
+			}),
+
+			ATON.UI.createElementFromHTMLString(`
+				<p class='merkhet-text-block'><br>
+				You can use this box below to freely annotate your thoughts for this specific time mark of the record "${R.rid}"
+				</p>
+			`),
+
+			elTextArea,
+			ATON.UI.createButton({
+				icon: "note",
+				text: "Annotate",
+				classes: "btn-default",
+				onpress: ()=>{
+					let content = elTextArea.value.trim();
+					let audio   = undefined;
+
+					if (content.length > 1){
+						R.saveBookmark(m, content, audio, ()=>{
+							ATON.Photon.fire("MKH_Annotation", {mark: m, rid: R.rid});
+						});
+						UI.closeToolPanel();
+					}
+				}
+			})
+		]
+	});
+
 	// Retrieve previous annotation if any
 	R.getSemStorage((s)=>{
 		if (!s.bookmarks) return;
@@ -478,52 +566,24 @@ UI.openAnnotateMark = (M)=>{
 		if (!B.content) return;
 
 		elTextArea.value = B.content;
+
+		elBody.append(ATON.UI.createButton({
+			icon: "trash",
+			text: "Delete",
+			classes: "btn-default",
+			onpress: ()=>{
+				R.removeBookmark(m, ()=>{
+					//
+				});
+
+				UI.closeToolPanel();
+			}
+		}));
 	});
 	
 	UI.openToolPanel({
 		header: "Mark #"+m,
-		body: ATON.UI.createContainer({
-				classes:"d-grid gap-2",
-				items:[
-					ATON.UI.createElementFromHTMLString(`
-						<p class='merkhet-text-block'>
-							<b>Timestamp</b>: ${kd.time} (${APP.getMinutesString(kd.time)})
-						</p>
-					`),
-
-					ATON.UI.createButton({
-						icon: "pov",
-						text: "View",
-						classes: "btn-default",
-						onpress: ()=>{
-							let pov = R.getPOVforMark(M);
-							ATON.Nav.requestPOV(pov, 0.3);
-						}
-					}),
-
-					ATON.UI.createElementFromHTMLString(`
-						<p class='merkhet-text-block'><br>
-						You can use this box below to freely annotate your thoughts for this specific time mark of the record "${R.rid}"
-						</p>
-					`),
-
-					elTextArea,
-					ATON.UI.createButton({
-						icon: "note",
-						text: "Annotate",
-						classes: "btn-default",
-						onpress: ()=>{
-							let content = elTextArea.value.trim();
-
-							if (content.length > 1){
-								R.saveBookmark(m, content);
-								UI.closeToolPanel();
-							}
-						}
-					})
-
-				]
-		})
+		body: elBody
 	});
 };
 
@@ -536,7 +596,7 @@ UI.setupSpatial = ()=>{
 
 	let btnTalk = new ATON.SUI.Button("sui_talk");
 
-    btnTalk.setIcon(ATON.FE.PATH_RES_ICONS+"talk.png")
+    btnTalk.setIcon(ATON.UI.PATH_RES_ICONS+"talk.png")
         //.setSwitchColor(ATON.MatHub.colors.orange)
         .onSelect = ()=>{
             if (ATON.MediaFlow.isAudioRecording()){

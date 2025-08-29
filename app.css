@@ -111,6 +111,10 @@
     user-select: none;
 }
 
+.merkhet-record-active {
+    border: solid var(--bs-body-color) 1px;
+}
+
 
 .merkhet-timeline-container {
     display: block;
