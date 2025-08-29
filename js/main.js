@@ -596,6 +596,7 @@ APP.setupEvents = ()=>{
 
 	ATON.EventHub.clearEventHandlers("SemanticNodeHover");
     ATON.on("SemanticNodeHover", (semid)=>{
+		return;
         let S = ATON.getSemanticNode(semid);
         if (!S) return;
 
@@ -626,6 +627,7 @@ APP.setupEvents = ()=>{
 
 	ATON.EventHub.clearEventHandlers("SemanticNodeLeave");
     ATON.on("SemanticNodeLeave", (semid)=>{
+		return;
         let S = ATON.getSemanticNode(semid);
         if (!S) return;
 

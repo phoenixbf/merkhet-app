@@ -317,14 +317,14 @@ generateFromCSVdata(data){
     this.node.attachTo(APP.gRecords);
 
     // Path
-/*
+
     let gPath = new THREE.BufferGeometry().setFromPoints( path );
     ///let gPath = new THREE.LineGeometry().setFromPoints( path );
     this.meshPath = new THREE.Line( gPath, matLine );
     this.meshPath.raycast = APP.VOID_CAST;
     
     this.node.add(this.meshPath);
-*/
+/*
     let nsegs = path.length * 2;
     let pathrad = 0.01; //0.03;
     if (APP._bPano) pathrad = 0.3;
@@ -334,7 +334,7 @@ generateFromCSVdata(data){
     this.meshPath.raycast = APP.VOID_CAST;
 
     this.node.add(this.meshPath);
-
+*/
 
 
     this._tRangeD = (this._tRangeMax - this._tRangeMin);
@@ -408,35 +408,71 @@ getPOVforMark = (M)=>{
     return pov;
 };
 
+requestTransitionToMark = (M, dur)=>{
+    if (!dur) dur = 0.5;
+
+    let pov = this.getPOVforMark(M);
+    ATON.Nav.requestPOV(pov, dur);
+};
+
 getOrCreateBookmark(i){
     let B = this._semAnnNodes[i];
     if (B) return B;
+
+    let self = this;
 
     let M = this.getMark(i);
 
     let r = 0.2;
     if (APP._bPano) r *= 20.0;
 
-    B = ATON.SemFactory.createSphere(undefined, new THREE.Vector3(0,0,0), r);
+    //B = ATON.SemFactory.createSphere(undefined, new THREE.Vector3(0,0,0), r);
+
+    B = ATON.createUINode(this.rid+"-M"+i);
+    
+    let bShape = new THREE.Mesh( ATON.Utils.geomUnitSphere, APP.recSemMatHL);
+    bShape.scale.setScalar(r);
+    bShape.visible = false;
+    B.add( bShape );
+
     B.position.copy(M.position);
     B.attachTo(this._gBookmarks);
 
-    B.setDefaultAndHighlightMaterials(this._matSem, APP.recSemMatHL);
-    B.restoreDefaultMaterial();
+/*     B.setDefaultAndHighlightMaterials(this._matSem, APP.recSemMatHL);
+    B.restoreDefaultMaterial(); */
 
     let deco = new THREE.Sprite( this._matAnn );
-    deco.scale.set(0.5,0.5,0.5);
+    deco.scale.setScalar(r*2.7);
     deco.renderOrder = 50;
     B.add(deco);
 
     B.userData.mark = M;
 
+    B.setOnHover(()=>{
+        bShape.visible = true;
+        //bShape.scale.setScalar(r*1.2);
+        //bShape.material = APP.recSemMatHL;
+
+		let marktxt = "#"+i+" (T: "+M.userData.time+")";
+        ATON.UI.showSemLabel(marktxt);
+		ATON.SUI.setInfoNodeText(marktxt);
+    });
+    B.setOnLeave(()=>{
+        bShape.visible = false;
+        //bShape.scale.setScalar(r);
+        //bShape.material = self._matAnn;
+
+        ATON.UI.hideSemLabel();
+    });
+
     B.setOnSelect(()=>{
-        let pov = this.getPOVforMark(M);
-		ATON.Nav.requestPOV(pov, 0.3);
+        this.requestTransitionToMark(M);
+        APP.UI.openAnnotateMark(M);
     });
 
     this._semAnnNodes[i] = B; // Register
+
+    B.enablePicking();
 
     return B;
 }

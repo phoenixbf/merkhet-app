@@ -526,8 +526,7 @@ UI.openAnnotateMark = (M)=>{
 				text: "View",
 				classes: "btn-default",
 				onpress: ()=>{
-					let pov = R.getPOVforMark(M);
-					ATON.Nav.requestPOV(pov, 0.3);
+					R.requestTransitionToMark(M);
 				}
 			}),
 

@@ -20,6 +20,12 @@ Processor.init = ()=>{
     Processor._bvBB = false;
 
     Processor._listFPstr = "";
+
+    Processor.hitsCompareFunction = ( a, b )=>{
+        if ( a.data.hits < b.data.hits ) return 1;
+        if ( a.data.hits > b.data.hits ) return -1;
+        return 0;
+    };
 };
 
 // Set extents for all volumes
@@ -427,6 +433,30 @@ Processor.filterPositionalFixations = (h)=>{
         if (hits >= h) C.show();
         else C.hide();
     }
+};
+
+Processor.getSortedFocalFixations = (num)=>{
+    let L = [];
+    Processor._volumeFocalPoints.forEachVoxel((V)=>{
+        L.push(V);
+    });
+
+    L.sort( Processor.hitsCompareFunction );
+    if (num) L = L.slice(0,num);
+
+    return L;
+};
+
+Processor.getSortedPositionalFixations = (num)=>{
+    let L = [];
+    Processor._volumeLocations.forEachVoxel((V)=>{
+        L.push(V);
+    });
+
+    L.sort( Processor.hitsCompareFunction );
+    if (num) L = L.slice(0,num);
+
+    return L;
 };
 
 export default Processor;

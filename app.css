@@ -133,6 +133,9 @@
     padding: 0px;
 
     margin: auto !important;
+
+/*     background-color: rgba(var(--bs-body-color-rgb), 0.5);
+    border-radius: var(--bs-border-radius); */
 }
 
 .merkhet-timeline-info {
