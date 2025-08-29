@@ -342,11 +342,10 @@ UI.panelRecords = ()=>{
         for (let d in data){
 			let rid = data[d];
 
-			// Avoid duplicates
-			if (!APP._records[rid]) rlist.push(rid); //$("#idRList").append("<option>"+data[d]+"</option>");
+			if (/*!APP._records[rid] &&*/ rid.endsWith(".csv")) rlist.push(rid); //$("#idRList").append("<option>"+data[d]+"</option>");
 		}
 
-		const numRecords = data.length;
+		const numRecords = rlist.length;
 
 		let elIF = ATON.UI.createInputText({
 			list: rlist,
@@ -364,6 +363,8 @@ UI.panelRecords = ()=>{
 				let rid = elInput.value;
 				if (!rid) return;
 				if (rid.length < 2) return;
+
+				if (APP._records[rid]) return; // Avoid duplicates
 
 				APP.loadRecord( rid, (r)=>{
 					//APP.setActiveRecord(rid);
