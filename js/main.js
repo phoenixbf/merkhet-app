@@ -83,7 +83,7 @@ APP.setup = ()=>{
 	APP.gLocFixations = ATON.createUINode("locfixations");
 	APP.gLocFixations.attachToRoot();
 	
-	APP.gAggregates = ATON.createSemanticNode("aggregates");
+	APP.gAggregates = ATON.createUINode("aggregates");
 	APP.gAggregates.attachToRoot();
 
 	ATON._bqSem = true;
@@ -275,7 +275,7 @@ APP.setupAssets = ()=>{
 		new THREE.Color(0.5,1,1),
 		new THREE.Color(0.5,1,0.5),
 		new THREE.Color(1,1,0.5),
-		new THREE.Color(1,0,0.5),
+		new THREE.Color(1,0.5,0.5),
 	];
 	
 	APP.recSemMats = [];
@@ -414,6 +414,7 @@ APP.detectPanoramicScene = ()=>{
 APP.reloadAnnotationsForActiveRecord = (onComplete)=>{
 	let R = APP.getActiveRecord();
 	if (!R) return;
+	if (!R.marks) return;
 
 	let numMarks = R.marks.children.length;
 	R.setSemStorageID( APP.getRecordSemStorageID(APP._currRID) );
@@ -518,6 +519,10 @@ APP.clearRecord = (rid)=>{
 
 	APP._records[rid].clear();
 	$("#tabrec-"+rid).remove();
+
+
+	if (APP._currRID===rid) APP._currRID = undefined;
+	APP._records[rid] = undefined;
 };
 
 APP.clearRecords = ()=>{
@@ -798,7 +803,7 @@ APP.loadDataAggregate = (path, onComplete)=>{
 			let dp = parseFloat(p) / parseFloat(maxcount);
 			//console.log(dp)
 
-			let K = ATON.createSemanticNode("d"+d);
+			let K = ATON.createUINode("d"+d);
 			K.position.set(px,py,pz);
 
 			let o = (d / maxdens) * 0.3;
@@ -854,6 +859,10 @@ APP.loadDataAggregate = (path, onComplete)=>{
 				trigger.material = ATON.MatHub.materials.fullyTransparent;
 
 				ATON.UI.hideSemLabel();
+			});
+
+			K.setOnSelect(()=>{
+				//ATON.Nav.requestPOVbyNode(K,0.1);
 			});
 
 			K.attachTo(APP.gAggregates);

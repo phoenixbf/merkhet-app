@@ -1,11 +1,15 @@
 let UI = {};
 
+UI.NUM_BESTPOVS = 10;
+
 UI.init = ()=>{
     UI._elMainToolbar   = ATON.UI.get("sideToolbar");
     UI._elBottomToolbar = ATON.UI.get("bottomToolbar");
     UI._elUserToolbar   = ATON.UI.get("userToolbar");
 	UI._elBottomPlate   = ATON.UI.get("bottomPlate");
 	UI._elTimeline      = ATON.UI.get("timeline");
+
+	UI._elListRecords = ATON.UI.createContainer({style: "margin-top: 8px"});
 
 	UI.setupSpatial();
 
@@ -18,6 +22,8 @@ UI.init = ()=>{
     document.body.append(UI._elSidePanel);
 
 	UI.buildToolbar();
+
+	ATON.SUI.showSelector(false);
 };
 
 UI.toggleBottomPlate = (b)=>{
@@ -291,12 +297,22 @@ UI.closeToolPanel = ()=>{
     //UI._bSidePanel = false;
 };
 
+UI.updateRecordsList = (elRecActive)=>{
+	for (let r in UI._elListRecords.children){
+		let elR = UI._elListRecords.children[r];
+		if (elR && elR.classList) elR.classList.remove("merkhet-record-active");
+	}
+
+	elRecActive.classList.add("merkhet-record-active");
+};
+
 UI.createRecordItem = (rid)=>{
 	const R = APP._records[rid];
 
 	let rname = ATON.Utils.removeFileExtension(rid);
 
 	let el = ATON.UI.createContainer({classes: "merkhet-record"});
+	if (APP._currRID===rid) el.classList.add("merkhet-record-active");
 /* 
 	el.onclick = ()=>{
 		APP.setActiveRecord(rid);
@@ -309,10 +325,23 @@ UI.createRecordItem = (rid)=>{
 
 	elActionsC.append( ATON.UI.createButton({
 		icon: "bi-crosshair",
-		size: "small",
+		//size: "small",
 		onpress: ()=>{
 			APP.setActiveRecord(rid);
+
+			UI.updateRecordsList(el);
+
 			ATON.Photon.fire("MKH_ActiveRecord", rid);
+		}
+	}));
+
+	elActionsC.append( ATON.UI.createButton({
+		icon: "bi-x-lg",
+		//size: "small",
+		onpress: ()=>{
+			APP.clearRecord(rid);
+			ATON.Photon.fire("MKH_RemoveRecord", rid);
+			el.remove();
 		}
 	}));
 
@@ -331,8 +360,8 @@ UI.createRecordItem = (rid)=>{
 };
 
 UI.panelRecords = ()=>{
-	let elListRecords = ATON.UI.createContainer({style: "margin-top: 8px"});
-	for (let r in APP._records) elListRecords.append( UI.createRecordItem(r) );
+	UI._elListRecords.innerHTML = "";
+	for (let r in APP._records) UI._elListRecords.append( UI.createRecordItem(r) );
 
 	let elAddRecord = ATON.UI.createContainer();
 
@@ -368,7 +397,11 @@ UI.panelRecords = ()=>{
 
 				APP.loadRecord( rid, (r)=>{
 					//APP.setActiveRecord(rid);
-					elListRecords.append( UI.createRecordItem(rid) );
+					let elRecord = UI.createRecordItem(rid);
+
+					UI.updateRecordsList(elRecord);
+
+					UI._elListRecords.append( elRecord );
 
 					ATON.Photon.fire("MKH_ActiveRecord", rid);
 					
@@ -389,7 +422,7 @@ UI.panelRecords = ()=>{
             items:[
 				ATON.UI.createElementFromHTMLString("<p class='merkhet-text-block'>Please pick one or more records from the capture hub for analysis and visual inspection</p>"),
 				elAddRecord,
-                elListRecords
+                UI._elListRecords
             ]
         })
     });
@@ -469,36 +502,84 @@ UI.panelAggregates = ()=>{
     });
 };
 
+UI.generateBestPOVsGallery = (elContainer)=>{
+	if (APP.Processor._bestPOVs.length < 1) return;
+
+	elContainer.append(ATON.UI.createElementFromHTMLString(`
+		<p class='merkhet-text-block'><br>
+		Below are the ${UI.NUM_BESTPOVS} viewpoints (POVs) with more interest computed from focal fixations of currently loaded records
+		</p>
+	`));
+
+	for (let i in APP.Processor._bestPOVs){
+		let B = APP.Processor._bestPOVs[i];
+
+		let elCard = ATON.UI.createCard({
+			title: "Viewpoint #"+i,
+			subtitle: "Hits: "+B.hits,
+			cover: B.img,
+			size: "large",
+			useblurtint: true,
+			onactivate: ()=>{
+				APP.Processor.requestBestPOV(i);
+			}
+		});
+
+		ATON.Nav.addLocomotionNode(B.pov.pos, true);
+
+/* 		let elImg = ATON.UI.getComponent(elCard, "img");
+		elImg = B.img; */
+
+		elContainer.append(elCard);
+	}
+};
+
 UI.panelCompute = ()=>{
+
+	let elBestPOVs = ATON.UI.createContainer({
+		//classes: "aton-hscrollable"
+	});
+
+	UI.generateBestPOVsGallery(elBestPOVs);
+
+	let elBody = ATON.UI.createContainer({
+		classes:"d-grid gap-2",
+		items:[
+			ATON.UI.createElementFromHTMLString("<p class='merkhet-text-block'>Locally compute fixations via voxel-based volume for all records loaded</p>"),
+
+			ATON.UI.createButton({
+				icon: "bi-cpu",
+				text: "Focal Fixations",
+				classes: "btn-default",
+				onpress: ()=>{
+					APP.Processor.computeFocalFixationsForLoadedRecords();
+					APP.Processor.getSortedFocalFixations(UI.NUM_BESTPOVS);
+					APP.Processor.computeBestPOVs();
+					
+					UI.generateBestPOVsGallery(elBestPOVs);
+					//elBody.append(elBestPOVs);
+					
+					//UI.closeToolPanel();
+				}
+			}),
+
+			ATON.UI.createButton({
+				icon: "bi-cpu",
+				text: "Positional Fixations",
+				classes: "btn-default",
+				onpress: ()=>{
+					APP.Processor.computePositionalFixationsForLoadedRecords();
+					//UI.closeToolPanel();
+				}
+			}),
+		],
+	});
+
+	elBody.append( elBestPOVs );
 
 	UI.openToolPanel({
         header: "Compute",
-        body: ATON.UI.createContainer({
-				classes:"d-grid gap-2",
-				items:[
-					ATON.UI.createElementFromHTMLString("<p class='merkhet-text-block'>Locally compute fixations via voxel-based volume for all records loaded</p>"),
-
-					ATON.UI.createButton({
-						icon: "bi-cpu",
-						text: "Focal Fixations",
-						classes: "btn-default",
-						onpress: ()=>{
-							APP.Processor.computeFocalFixationsForLoadedRecords();
-							//UI.closeToolPanel();
-						}
-					}),
-
-					ATON.UI.createButton({
-						icon: "bi-cpu",
-						text: "Positional Fixations",
-						classes: "btn-default",
-						onpress: ()=>{
-							APP.Processor.computePositionalFixationsForLoadedRecords();
-							//UI.closeToolPanel();
-						}
-					}),
-				],
-			})
+        body: elBody
     });
 };
 

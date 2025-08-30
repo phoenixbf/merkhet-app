@@ -21,6 +21,10 @@ Processor.init = ()=>{
 
     Processor._listFPstr = "";
 
+    Processor._sortedFF = undefined; // Sorted focal fixations
+    Processor._sortedPF = undefined; // Sorted positional fixations
+    Processor._bestPOVs = [];
+
     Processor.hitsCompareFunction = ( a, b )=>{
         if ( a.data.hits < b.data.hits ) return 1;
         if ( a.data.hits > b.data.hits ) return -1;
@@ -436,27 +440,64 @@ Processor.filterPositionalFixations = (h)=>{
 };
 
 Processor.getSortedFocalFixations = (num)=>{
-    let L = [];
+    Processor._sortedFF = [];
     Processor._volumeFocalPoints.forEachVoxel((V)=>{
-        L.push(V);
+        Processor._sortedFF.push(V);
     });
 
-    L.sort( Processor.hitsCompareFunction );
-    if (num) L = L.slice(0,num);
+    Processor._sortedFF.sort( Processor.hitsCompareFunction );
+    if (num) Processor._sortedFF = Processor._sortedFF.slice(0,num);
 
-    return L;
+    return Processor._sortedFF;
 };
 
 Processor.getSortedPositionalFixations = (num)=>{
-    let L = [];
+    Processor._sortedPF = [];
     Processor._volumeLocations.forEachVoxel((V)=>{
-        L.push(V);
+        Processor._sortedPF.push(V);
     });
 
-    L.sort( Processor.hitsCompareFunction );
-    if (num) L = L.slice(0,num);
+    Processor._sortedPF.sort( Processor.hitsCompareFunction );
+    if (num) Processor._sortedPF = Processor._sortedPF.slice(0,num);
 
-    return L;
+    return Processor._sortedPF;
+};
+
+Processor.computeBestPOVs = ()=>{
+    if (!Processor._sortedFF) return;
+
+    Processor._bestPOVs = [];
+
+    for (let v=0; v<Processor._sortedFF.length; v++){
+        let V = Processor._sortedFF[v];
+
+        let tgt = Processor._volumeFocalPoints.getVoxelLocation(V.i, V.j, V.k);
+        let pos = tgt.clone();
+
+        pos.x -= V.data.n.x;
+        pos.y -= V.data.n.y;
+        pos.z -= V.data.n.z;
+
+        let pov = new ATON.POV("BestPOV"+v).setPosition(pos).setTarget(tgt).setFOV(70.0);
+        let im = ATON.Utils.takeScreenshotFromPOV(pov, 512, undefined, true /*, "pov"+v+".png"*/);
+
+        Processor._bestPOVs.push({
+            pov: pov,
+            img: im,
+            hits: V.data.hits
+        });
+    }
+};
+
+Processor.getBestPOV = (i)=>{
+    return Processor._bestPOVs[i];
+};
+
+Processor.requestBestPOV = (i)=>{
+    let P = Processor._bestPOVs[i];
+    if (!P) return;
+
+    ATON.Nav.requestPOV(P.pov);
 };
 
 export default Processor;

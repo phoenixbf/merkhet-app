@@ -21,6 +21,7 @@ constructor(rid){
     this._matSem = APP.recSemMats[ numCurrentRecs % APP.recSemMats.length ];
 
     this._currMarkInd = 0;
+    
     //this._marks = [];
     //this.setupCursor();
 
@@ -60,27 +61,36 @@ getBookmarksList(){
     return this._semAnnNodes;
 }
 
-// Unused for now
-/*
+// TODO: should use this approach, not used for now
 setupCursor(){
-    let matMark = APP.matSpriteMark.clone();
-    matMark.color = this._color;
-
     let matLine = APP.matPath.clone();
     matLine.color = this._color;
 
+    let matfov = APP.matFOV.clone();
+    matfov.color = this._color;
+
     this._cursor = ATON.createUINode("cur-"+this.rid);
+    this._cursor.attachToRoot(this.node);
 
     // 3D Representation
-    let mark = new THREE.Sprite(matMark);
+    let mark = new THREE.Sprite( APP.matSpriteCursor );
+    mark.renderOrder = 100;
     //mark.raycast = APP.VOID_CAST;
     this._cursor.add(mark);
 
     if (APP._bPano){
+/*
+        this._cursor.position.set(
+            dx * APP._panoScale,
+            dy * APP._panoScale,
+            dz * APP._panoScale
+        );
+*/
         mark.scale.setScalar(APP.MARK_SCALE * 50.0);
     }
     else {
         mark.scale.setScalar(APP.MARK_SCALE);
+        
         //this._cursor.position.set(px,py,pz);
 
         let conesize = 5.0;
@@ -88,30 +98,39 @@ setupCursor(){
         gfov.rotateX(Math.PI*0.5);
         gfov.translate(0,0,-0.5*conesize);
 
-        let mfov = new THREE.Mesh( gfov, APP.matFOV );
-        mfov.lookAt(-dx, -dy, -dz);
+        let mfov = new THREE.Mesh( gfov, matfov );
+        //mfov.lookAt(-dx, -dy, -dz);
+        mfov.raycast = APP.VOID_CAST;
 
         this._cursor.add(mfov);
+
+/*
+        let gDir = new THREE.BufferGeometry().setFromPoints([APP._vZero, new THREE.Vector3(dx, dy, dz)]);
+        let dLine = new THREE.Line( gDir, APP.matDirection);
+        dLine.raycast = APP.VOID_CAST;
+        this._cursor.add( dLine );
+*/
     }
 
-    this._cursor.enablePicking();
 
+    this._cursor.enablePicking();
     this._cursor.setOnHover(()=>{
-        this._cursor.scale.setScalar(1.5);
-        APP._hoverMark = K;
+        K.scale.setScalar(1.5);
+        APP._hoverMark = this.marks[this._currMarkInd];
 
     });
     this._cursor.setOnLeave(()=>{
-        this._cursor.scale.setScalar(1);
+        K.scale.setScalar(1);
         APP._hoverMark = undefined;
     });
 }
-*/
 
 clear(){
-    this.node.removeChildren();
+    if (this.node) this.node.removeChildren();
     if (this._gBookmarks) this._gBookmarks.removeChildren();
     for (let a in this._semAnnNodes) this._semAnnNodes[a] = null;
+
+    if (this.marks) this.marks.removeChildren();
 }
 
 getMark(i){
@@ -137,6 +156,77 @@ getMarkIndex(M){
 */
 }
 
+setCursor = ()=>{
+    if (!this.marks) return;
+
+    let marks = this.marks.children;
+    let num = marks.length;
+    if (num < 1) return;
+
+    if (this._tRangeMax===undefined || this._tRangeMin===undefined) return;
+
+    let t = (this._filterTime - this._tRangeMin) / this._tRangeD;
+
+    this._currMarkInd = parseInt(t*num);
+};
+
+areRowsEqual(values_A, values_B){
+    let lenA = values_A.length;
+    let lenB = values_B.length;
+
+    if (lenA !== lenB) return false;
+
+    for (let i=0; i<lenA; i++){
+        if (values_A[i] !== values_B[i]) return false;
+    }
+
+    return true;
+}
+
+removeIdleExtremes(rows){
+    let tot = rows.length;
+    if (tot < 3) return;
+
+    let first = rows[1];
+    let last  = rows[ tot-1 ];
+
+    first = first.split(",");
+    last  = last.split(",");
+
+    first.shift();
+    last.shift();
+
+    // Start
+    for (let i=2; i<tot; i++){
+        let row = rows[i];
+        if (row){
+            let values = row.split(",");
+            values.shift();
+
+            if (this.areRowsEqual(values,first)){
+                rows.shift();
+                //console.log("removed "+values);
+            }
+        }
+
+    }
+
+    // End
+    for (let i=(tot-2); i>0; i--){
+        let row = rows[i];
+        if (row){
+            let values = row.split(",");
+            values.shift();
+
+            if (this.areRowsEqual(values,last)){
+                rows.pop();
+                //console.log("removed "+values);
+            }
+        }
+    }
+
+}
+
 generateFromCSVdata(data){
     this.node = ATON.createUINode(this.rid);
     let self = this;
@@ -147,13 +237,22 @@ generateFromCSVdata(data){
     this._gBookmarks = ATON.createUINode();
     this._gBookmarks.attachTo(this.node);
 
+    data = data.trim();
+
     let rows = data.split("\n");
     let num = rows.length;
+
+    // Cleaning (cropping idles)
+    console.log("Rows before cropping: "+num);
+    this.removeIdleExtremes(rows);
+    num = rows.length;
+    console.log("Rows after cropping: "+num);
 
     if (num < 3){
         console.log("Not sufficient data for this record")
         return this;
     }
+
 
     let values;
 
@@ -162,11 +261,11 @@ generateFromCSVdata(data){
     //let matMark = APP.matSpriteCursor.clone(); //APP.matSpriteMark.clone();
     ///matMark.color = this._color;
 
-    let matLine = APP.matPath.clone();
-    matLine.color = this._color;
+    this._matLine = APP.matPath.clone();
+    this._matLine.color = this._color;
 
-    let matfov = APP.matFOV.clone();
-    matfov.color = this._color;
+    this._matFOV = APP.matFOV.clone();
+    this._matFOV.color = this._color;
 
     this._matAnn = APP.matSpriteAnnotation.clone();
     this._matAnn.color = this._color;
@@ -221,9 +320,7 @@ generateFromCSVdata(data){
             let fov = undefined;
             if (C_FOV>=0) fov = parseFloat(values[C_FOV]);
 
-            let K = ATON.createUINode(this.rid+"-m"+m);
-
-            
+            this._tRangeMax = t;            
 /*
             let MD = {
                 time: t,
@@ -237,7 +334,9 @@ generateFromCSVdata(data){
             path.push(MD.pos);
 */
 
-            // UserData
+            // UserData (TO BE REMOVED with above approach)
+            let K = ATON.createUINode(this.rid+"-m"+m);
+
             K.userData.i    = path.length;
             K.userData.time = t;
             if (nav!==undefined) K.userData.nav  = nav;
@@ -248,7 +347,7 @@ generateFromCSVdata(data){
             path.push(K.position);
 
             // 3D Representation
-            let mark = new THREE.Sprite( APP.matSpriteCursor /*matMark*/);
+            let mark = new THREE.Sprite( APP.matSpriteCursor );
             mark.renderOrder = 100;
             //mark.raycast = APP.VOID_CAST;
             K.add(mark);
@@ -266,20 +365,12 @@ generateFromCSVdata(data){
                 mark.scale.setScalar(APP.MARK_SCALE);
                 K.position.set(px,py,pz);
 
-                // Trigger
-/*
-                let gs = new THREE.Mesh( ATON.Utils.geomUnitCube, ATON.MatHub.materials.fullyTransparent);
-                gs.scale.setScalar(0.3);
-                K.add(gs);
-*/
-
-
                 let conesize = 5.0;
                 let gfov = new THREE.ConeGeometry( 0.7*conesize, conesize, 10, 1, true );
                 gfov.rotateX(Math.PI*0.5);
                 gfov.translate(0,0,-0.5*conesize);
     
-                let mfov = new THREE.Mesh( gfov, matfov );
+                let mfov = new THREE.Mesh( gfov, this._matFOV );
                 mfov.lookAt(-dx, -dy, -dz);
                 mfov.raycast = APP.VOID_CAST;
 
@@ -307,8 +398,6 @@ generateFromCSVdata(data){
             this.marks.add(K);
 
             K.hide();
-
-            this._tRangeMax = t;
         }
     }
 
@@ -320,7 +409,7 @@ generateFromCSVdata(data){
 
     let gPath = new THREE.BufferGeometry().setFromPoints( path );
     ///let gPath = new THREE.LineGeometry().setFromPoints( path );
-    this.meshPath = new THREE.Line( gPath, matLine );
+    this.meshPath = new THREE.Line( gPath, this._matLine );
     this.meshPath.raycast = APP.VOID_CAST;
     
     this.node.add(this.meshPath);
@@ -330,7 +419,7 @@ generateFromCSVdata(data){
     if (APP._bPano) pathrad = 0.3;
 
     let gPath = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(path), nsegs, pathrad, 6, false );
-    this.meshPath = new THREE.Mesh( gPath, matLine );
+    this.meshPath = new THREE.Mesh( gPath, this._matLine );
     this.meshPath.raycast = APP.VOID_CAST;
 
     this.node.add(this.meshPath);
@@ -369,6 +458,8 @@ loadFromCSVurl(url, onComplete){
 }
 
 filter(){
+    if (!this.marks) return;
+
     let marks = this.marks.children;
     let num = marks.length;
     if (num < 1) return;
@@ -381,11 +472,9 @@ filter(){
 
     for (let r=0; r<num; r++){
         let M = marks[r];
-        let mt = M.userData.time;
+        //let mt = M.userData.time;
 
-        if (r === this._currMarkInd){
-            M.show();
-        }
+        if (r === this._currMarkInd && !APP._bViewLock ) M.show();
         else M.hide();
     }
 }
@@ -422,6 +511,7 @@ getOrCreateBookmark(i){
     let self = this;
 
     let M = this.getMark(i);
+    if (!M) return;
 
     let r = 0.2;
     if (APP._bPano) r *= 20.0;
@@ -430,7 +520,8 @@ getOrCreateBookmark(i){
 
     B = ATON.createUINode(this.rid+"-M"+i);
     
-    let bShape = new THREE.Mesh( ATON.Utils.geomUnitSphere, APP.recSemMatHL);
+    let bShape = new THREE.Mesh( ATON.Utils.geomUnitSphere );
+    bShape.material = APP.recSemMatHL;
     bShape.scale.setScalar(r);
     bShape.visible = false;
     B.add( bShape );
@@ -443,7 +534,8 @@ getOrCreateBookmark(i){
 
     let deco = new THREE.Sprite( this._matAnn );
     deco.scale.setScalar(r*2.7);
-    deco.renderOrder = 50;
+    deco.renderOrder = 150;
+    //deco.raycast = APP.VOID_CAST;
     B.add(deco);
 
     B.userData.mark = M;
@@ -466,7 +558,7 @@ getOrCreateBookmark(i){
     });
 
     B.setOnSelect(()=>{
-        this.requestTransitionToMark(M);
+        self.requestTransitionToMark(M);
         APP.UI.openAnnotateMark(M);
     });
 
