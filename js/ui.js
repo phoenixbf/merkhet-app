@@ -55,9 +55,10 @@ UI.buildTimelineForActiveRecord = ()=>{
 
 	let elInfo = ATON.UI.createContainer({classes: "merkhet-timeline-info"});
 
+	
 	let R = APP.getActiveRecord();
 	if (!R) ATON.UI.hideElement(UI._elTimeline);
-
+	
 	if (!R._tRangeD) return;
 
 	let range = [R._tRangeMin, R._tRangeMax];
@@ -318,13 +319,26 @@ UI.createRecordItem = (rid)=>{
 		APP.setActiveRecord(rid);
 	};
  */
-	let strcol = R.getColor(0.3);
+	let strcol = R.getColor(0.5);
 	el.style.backgroundColor = strcol;
 
-	const elActionsC = ATON.UI.createContainer({style: "display:inline-block; margin-right:0px"});
+	const elActionsC = ATON.UI.createContainer({style: "display:inline-block; margin-left:4px;"});
 
 	elActionsC.append( ATON.UI.createButton({
-		icon: "bi-crosshair",
+		icon: "bi-x",
+		classes: "btn-default",
+		//size: "small",
+		onpress: ()=>{
+			APP.clearRecord(rid);
+			ATON.Photon.fire("MKH_RemoveRecord", rid);
+			el.remove();
+		}
+	}));
+
+/*
+	elActionsC.append( ATON.UI.createButton({
+		icon: "bi-caret-right-fill",
+		classes: "btn-default",
 		//size: "small",
 		onpress: ()=>{
 			APP.setActiveRecord(rid);
@@ -334,28 +348,16 @@ UI.createRecordItem = (rid)=>{
 			ATON.Photon.fire("MKH_ActiveRecord", rid);
 		}
 	}));
-
-	elActionsC.append( ATON.UI.createButton({
-		icon: "bi-x-lg",
-		//size: "small",
-		onpress: ()=>{
-			APP.clearRecord(rid);
-			ATON.Photon.fire("MKH_RemoveRecord", rid);
-			el.remove();
-		}
-	}));
-
-	el.append( elActionsC );
-	el.append( rname );
-
-	//if (rid === APP._currRID) el.classList.add("merkhet-record-active");
-/*
-	el.append( ATON.UI.createButton({
-		text: rid,
-		onpress: ()=>{
-		}
-	}));
 */
+	el.onclick = ()=>{
+		APP.setActiveRecord(rid);
+		UI.updateRecordsList(el);
+		ATON.Photon.fire("MKH_ActiveRecord", rid);
+	};
+
+	el.append( rname );
+	el.append( elActionsC );
+
 	return el;
 };
 
@@ -413,16 +415,28 @@ UI.panelRecords = ()=>{
 		}));
 
 		elAddRecord.append( elIF );
-
     });
 
 	UI.openToolPanel({
         header: "Records",
         body: ATON.UI.createContainer({
+			classes:"d-grid gap-2",
             items:[
 				ATON.UI.createElementFromHTMLString("<p class='merkhet-text-block'>Please pick one or more records from the capture hub for analysis and visual inspection</p>"),
+
 				elAddRecord,
-                UI._elListRecords
+                
+				UI._elListRecords,
+
+				ATON.UI.createButton({
+					icon: "bi-x-lg",
+					text: "Clear records list",
+					classes: "btn-default",
+					onpress: ()=>{
+						APP.clearRecords();
+						UI._elListRecords.innerHTML = "";
+					}
+				})
             ]
         })
     });

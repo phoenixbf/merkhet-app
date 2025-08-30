@@ -86,18 +86,21 @@
 }
 
 .merkhet-record {
-    display: block;
-/*     cursor: pointer; */
+    cursor: pointer;
+
+    opacity: 0.6;
 
     padding: 2px;
     display: block;
+
+    text-align: right;
 
     white-space: nowrap;
 
     margin: 2px;
     /*margin-left: 8px;*/
 
-    background-color: rgba(var(--bs-body-bg-rgb), 0.3);
+    background-color: rgba(var(--bs-body-bg-rgb), 0.5);
     /*border-left: solid var(--bs-body-color) 1px;*/
 
     border-radius: var(--bs-border-radius);
@@ -112,7 +115,8 @@
 }
 
 .merkhet-record-active {
-    border: solid var(--bs-body-color) 1px;
+/*     border: solid var(--bs-body-color) 1px; */
+    opacity: 1.0;
 }
 
 

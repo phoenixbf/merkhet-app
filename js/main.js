@@ -545,7 +545,11 @@ APP.setupEvents = ()=>{
 	// Keyboard
 	ATON.on("KeyPress", (k)=>{
 		//if (k==='ArrowRight') 
-        //if (k==='ArrowLeft') 
+        //if (k==='ArrowLeft')
+
+		if (k==='r') APP.UI.panelRecords();
+		if (k==='a') APP.UI.panelAggregates();
+		if (k==='c') APP.UI.panelCompute();
 	});
 
 	ATON.on("Tap", (e)=>{
@@ -553,11 +557,13 @@ APP.setupEvents = ()=>{
 			APP.UI.openAnnotateMark(APP._hoverMark);
 			return;
 		}
-
+/*
 		let annMark = ATON.getHoveredSemanticNode();
 		if (annMark){
 			APP.UI.openAnnotateMark( annMark.userData.mark );
 		}
+*/
+		UI.closeToolPanel();
 
 	});
 

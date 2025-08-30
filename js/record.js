@@ -318,9 +318,7 @@ generateFromCSVdata(data){
             }
 
             let fov = undefined;
-            if (C_FOV>=0) fov = parseFloat(values[C_FOV]);
-
-            this._tRangeMax = t;            
+            if (C_FOV>=0) fov = parseFloat(values[C_FOV]);           
 /*
             let MD = {
                 time: t,
@@ -352,6 +350,7 @@ generateFromCSVdata(data){
             //mark.raycast = APP.VOID_CAST;
             K.add(mark);
 
+            // Panoramic mode
             if (APP._bPano){
                 K.position.set(
                     dx * APP._panoScale,
@@ -361,6 +360,7 @@ generateFromCSVdata(data){
 
                 mark.scale.setScalar(APP.MARK_SCALE * 50.0);
             }
+            // Std mode
             else {
                 mark.scale.setScalar(APP.MARK_SCALE);
                 K.position.set(px,py,pz);
@@ -398,6 +398,8 @@ generateFromCSVdata(data){
             this.marks.add(K);
 
             K.hide();
+
+            this._tRangeMax = t; 
         }
     }
 
