@@ -308,6 +308,7 @@ UI.updateRecordsList = (elRecActive)=>{
 
 UI.createRecordItem = (rid)=>{
 	const R = APP._records[rid];
+	if (!R) return undefined;
 
 	let rname = ATON.Utils.removeFileExtension(rid);
 
@@ -393,7 +394,7 @@ UI.panelRecords = ()=>{
 				let rid = elInput.value;
 
 				elInput.value = "";
-				
+
 				if (!rid) return;
 				if (rid.length < 2) return;
 
