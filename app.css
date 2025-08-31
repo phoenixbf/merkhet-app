@@ -37,6 +37,16 @@
     backdrop-filter: blur(var(--aton-blur-radius));
 }
 
+.merkhet-main-btn {
+    --bs-btn-bg: rgba(var(--bs-body-bg-rgb), 1.0);
+    --bs-btn-border-color: rgba(var(--bs-body-color-rgb), 0.0);
+    --bs-btn-color: var(--bs-btn-color);
+
+    --bs-btn-hover-bg: rgba(var(--bs-body-bg-rgb), 1.0);
+    --bs-btn-hover-border-color: rgba(var(--bs-body-color-rgb), 0.0);
+    --bs-btn-hover-color: var(--bs-btn-color);
+}
+
 .merkhet-user-toolbar {
     top: 0px;
     right: 0px;
@@ -90,7 +100,7 @@
 
     opacity: 0.6;
 
-    padding: 2px;
+    padding: 0px;
     display: block;
 
     text-align: right;

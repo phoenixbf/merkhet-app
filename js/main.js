@@ -425,12 +425,6 @@ APP.reloadAnnotationsForActiveRecord = (onComplete)=>{
 			let i = parseInt(b);
 
 			R.getOrCreateBookmark( i );
-/*
-			let vv = (i/numMarks) * (R._tRangeMax - R._tRangeMin);
-			vv += R._tRangeMin;
-
-			bopts += "<option value='"+parseInt(vv)+"' label='"+i+"'></option>";
-*/
 		}
 
 		if (onComplete) onComplete();
@@ -518,7 +512,7 @@ APP.clearRecord = (rid)=>{
 	if (!APP._records[rid]) return;
 
 	APP._records[rid].clear();
-	$("#tabrec-"+rid).remove();
+	//$("#tabrec-"+rid).remove();
 
 
 	if (APP._currRID===rid) APP._currRID = undefined;
@@ -553,17 +547,13 @@ APP.setupEvents = ()=>{
 	});
 
 	ATON.on("Tap", (e)=>{
-		if (APP._hoverMark){
-			APP.UI.openAnnotateMark(APP._hoverMark);
-			return;
-		}
-/*
-		let annMark = ATON.getHoveredSemanticNode();
-		if (annMark){
-			APP.UI.openAnnotateMark( annMark.userData.mark );
-		}
-*/
 		UI.closeToolPanel();
+
+        ATON.checkAuth(
+            (u)=>{
+				if (APP._hoverMark) APP.UI.openAnnotateMark(APP._hoverMark);
+            }
+        );
 
 	});
 

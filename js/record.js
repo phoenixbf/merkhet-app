@@ -561,7 +561,12 @@ getOrCreateBookmark(i){
 
     B.setOnSelect(()=>{
         self.requestTransitionToMark(M);
-        APP.UI.openAnnotateMark(M);
+
+        ATON.checkAuth(
+            (u)=>{
+                APP.UI.openAnnotateMark(M);
+            }
+        );
     });
 
     this._semAnnNodes[i] = B; // Register
@@ -581,6 +586,8 @@ saveBookmark(i, content, audio, onComplete){
     O.bookmarks = {};
     O.bookmarks[i] = {};
     O.bookmarks[i].content = content;
+
+    if (audio) O.bookmarks[i].audio = audio;
 
     APP.addToStorage( this._semStorageID, O ).then(()=>{
         if (onComplete) onComplete();

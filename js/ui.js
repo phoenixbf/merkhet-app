@@ -95,6 +95,9 @@ UI.buildTimelineForActiveRecord = ()=>{
 UI.buildToolbar = ()=>{
     UI._elBottomToolbar.append(
 		ATON.UI.createButtonFullscreen(),
+		ATON.UI.createButtonVR(),
+		ATON.UI.createButtonAR(),
+		UI.createCollaborateButton(),
         ATON.UI.createButtonHome(),
 		UI.createViewLockButton()
     );
@@ -104,10 +107,9 @@ UI.buildToolbar = ()=>{
 	UI._elMainToolbar.append(
 		ATON.UI.createButton({
         	icon: "assets/i-merkhet.png",
+			classes: "merkhet-main-btn",
         	onpress: UI.modalMerkhet
     	}),
-
-		UI.createCollaborateButton(),
 
 		ATON.UI.createButton({
         	icon: "bi-activity",
@@ -122,10 +124,7 @@ UI.buildToolbar = ()=>{
 		ATON.UI.createButton({
         	icon: "bi-cpu",
         	onpress: UI.panelCompute
-    	}),
-
-		ATON.UI.createButtonVR(),
-		ATON.UI.createButtonAR()
+    	})
 	);
 };
 
@@ -568,11 +567,14 @@ UI.panelCompute = ()=>{
 				onpress: ()=>{
 					APP.Processor.computeFocalFixationsForLoadedRecords();
 					APP.Processor.getSortedFocalFixations(UI.NUM_BESTPOVS);
+
+					let currpov = ATON.Nav.copyCurrentPOV();
 					APP.Processor.computeBestPOVs();
 					
 					UI.generateBestPOVsGallery(elBestPOVs);
 					//elBody.append(elBestPOVs);
 					
+					ATON.Nav.requestPOV(currpov, 0.1);
 					//UI.closeToolPanel();
 				}
 			}),
@@ -607,6 +609,13 @@ UI.openAnnotateMark = (M)=>{
 	let m = R.getMarkIndex(M);
 
 	let elTextArea = ATON.UI.createElementFromHTMLString("<textarea spellcheck='false' rows='4' cols='50'></textarea>");
+	let elMarkActions = ATON.UI.createContainer({
+		classes: "btn-group",
+		style: "margin-top: 10px"
+	});
+
+
+	let audio = undefined;
 
 	let elBody = ATON.UI.createContainer({
 		classes:"d-grid gap-2",
@@ -633,24 +642,34 @@ UI.openAnnotateMark = (M)=>{
 			`),
 
 			elTextArea,
-			ATON.UI.createButton({
-				icon: "note",
-				text: "Annotate",
-				classes: "btn-default",
-				onpress: ()=>{
-					let content = elTextArea.value.trim();
-					let audio   = undefined;
 
-					if (content.length > 1){
-						R.saveBookmark(m, content, audio, ()=>{
-							ATON.Photon.fire("MKH_Annotation", {mark: m, rid: R.rid});
-						});
-						UI.closeToolPanel();
-					}
+			ATON.UI.createAudioRecorder({
+				textrec: "Record observation",
+				onaudio: (data)=>{
+					audio = data;
+					console.log(audio)
 				}
-			})
+			}),
+
+			elMarkActions
 		]
 	});
+
+	elMarkActions.append( ATON.UI.createButton({
+		icon: "note",
+		text: "Save",
+		classes: "btn-default",
+		onpress: ()=>{
+			let content = elTextArea.value.trim();
+
+			if (content.length > 1 || audio){
+				R.saveBookmark(m, content, audio, ()=>{
+					ATON.Photon.fire("MKH_Annotation", {mark: m, rid: R.rid});
+				});
+				UI.closeToolPanel();
+			}
+		}
+	}));
 
 	// Retrieve previous annotation if any
 	R.getSemStorage((s)=>{
@@ -662,7 +681,7 @@ UI.openAnnotateMark = (M)=>{
 
 		elTextArea.value = B.content;
 
-		elBody.append(ATON.UI.createButton({
+		elMarkActions.append(ATON.UI.createButton({
 			icon: "trash",
 			text: "Delete",
 			classes: "btn-default",
