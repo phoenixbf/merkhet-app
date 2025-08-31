@@ -391,12 +391,17 @@ UI.panelRecords = ()=>{
 			classes: "btn-default",
 			onpress: ()=>{
 				let rid = elInput.value;
+
+				elInput.value = "";
+				
 				if (!rid) return;
 				if (rid.length < 2) return;
 
 				if (APP._records[rid]) return; // Avoid duplicates
 
 				APP.loadRecord( rid, (r)=>{
+					if (!r) return;
+
 					//APP.setActiveRecord(rid);
 					let elRecord = UI.createRecordItem(rid);
 
@@ -408,8 +413,6 @@ UI.panelRecords = ()=>{
 					
 					// TODO: remove entry from datalist
 				});
-
-				elInput.value = "";
 			}
 		}));
 

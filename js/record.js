@@ -31,6 +31,13 @@ constructor(rid){
     this._semStorageID = rid;
 }
 
+hasValidData(){
+    if (!this.node) return false;
+    if (this._tRangeD <= 0.0) return false;
+
+    return true;
+}
+
 getColor(opacity){
     if (opacity) return "rgba("+this._color.r*127+","+this._color.g*127+","+this._color.b*127+", "+opacity+")";
     return this._color;
@@ -228,15 +235,6 @@ removeIdleExtremes(rows){
 }
 
 generateFromCSVdata(data){
-    this.node = ATON.createUINode(this.rid);
-    let self = this;
-
-    this.marks = ATON.createUINode();
-    this.marks.attachTo(this.node);
-
-    this._gBookmarks = ATON.createUINode();
-    this._gBookmarks.attachTo(this.node);
-
     data = data.trim();
 
     let rows = data.split("\n");
@@ -252,6 +250,15 @@ generateFromCSVdata(data){
         console.log("Not sufficient data for this record")
         return this;
     }
+
+    this.node = ATON.createUINode(this.rid);
+    let self = this;
+
+    this.marks = ATON.createUINode();
+    this.marks.attachTo(this.node);
+
+    this._gBookmarks = ATON.createUINode();
+    this._gBookmarks.attachTo(this.node);
 
 
     let values;

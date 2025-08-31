@@ -444,7 +444,7 @@ APP.setActiveRecord = (rid)=>{
 	if (rid === APP._currRID) return;
 
 	for (let r in APP._records){
-		if (r!==rid) APP._records[r].switch(false);
+		if (r!==rid && APP._records[r]) APP._records[r].switch(false);
 	}
 
 	APP._currRID   = rid;
@@ -491,14 +491,13 @@ APP.loadRecord = (rid, onComplete)=>{
 
 	let R = new APP.Record(rid);
 	R.loadViaAPI(()=>{
-		console.log(R._tRangeMin+","+R._tRangeMax);
-/*
-		$("#tSlider").attr("min", R._tRangeMin);
-		$("#tSlider").attr("max", R._tRangeMax);
-		$("#tSlider").val(R._tRangeMin);
+		console.log(R._tRangeD);
 
-		$("#recTabs").append("<div id='tabrec-"+rid+"' class='tabRecord' style='background-color: "+strcol+"' onclick=\"APP.setActiveRecordBroadcast('"+rid+"')\">"+rid+"</div>");
-*/
+		if (!R.hasValidData()){
+			console.log("Record has invalid data!");
+			if (onComplete) onComplete(undefined);
+			return;
+		}
 
 		APP._records[rid] = R;
 
