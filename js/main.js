@@ -536,6 +536,7 @@ APP.getRecordSemStorageID = (rid)=>{
 
 APP.setupEvents = ()=>{
 	// Keyboard
+/*
 	ATON.on("KeyPress", (k)=>{
 		//if (k==='ArrowRight') 
         //if (k==='ArrowLeft')
@@ -544,7 +545,7 @@ APP.setupEvents = ()=>{
 		if (k==='a') APP.UI.panelAggregates();
 		if (k==='c') APP.UI.panelCompute();
 	});
-
+*/
 	ATON.on("Tap", (e)=>{
 		UI.closeToolPanel();
 

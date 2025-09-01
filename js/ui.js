@@ -128,9 +128,10 @@ UI.buildToolbar = ()=>{
 	);
 };
 
-UI.createUserButton = ()=>{
+UI.createUserButton = (loggeduser)=>{
     UI._elUserBTN = ATON.UI.createButton({
         icon: "user",
+		text: loggeduser? loggeduser : undefined,
         onpress: UI.modalUser
     });
 
@@ -228,7 +229,7 @@ UI.modalUser = ()=>{
                         ATON.REQ.logout();
                         ATON.UI.hideModal();
 
-                        if (UI._elUserBTN) UI._elUserBTN.classList.remove("aton-btn-highlight");
+                        if (UI._elUserBTN) UI._elUserBTN = UI.createUserButton(u.username);
                     }
                 })
             );
@@ -249,10 +250,10 @@ UI.modalUser = ()=>{
                 body: ATON.UI.createLoginForm({
                     onSuccess: (r)=>{
                         ATON.UI.hideModal();
-                        if (UI._elUserBTN) UI._elUserBTN.classList.add("aton-btn-highlight");
+                        if (UI._elUserBTN) UI._elUserBTN = UI.createUserButton();
                     },
                     onFail: ()=>{
-                        // TODO:
+                        //TODO:
                     }
                 })
             })
