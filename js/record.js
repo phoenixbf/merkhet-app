@@ -235,6 +235,8 @@ removeIdleExtremes(rows){
 }
 
 generateFromCSVdata(data){
+    this._dataerr = undefined;
+
     data = data.trim();
 
     let rows = data.split("\n");
@@ -247,7 +249,7 @@ generateFromCSVdata(data){
     console.log("Rows after cropping: "+num);
 
     if (num < 3){
-        console.log("Not sufficient data for this record")
+        this._dataerr = "Not sufficient data for this record ("+num+" rows)";
         return this;
     }
 

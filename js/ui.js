@@ -97,6 +97,7 @@ UI.buildToolbar = ()=>{
 		ATON.UI.createButtonFullscreen(),
 		ATON.UI.createButtonVR(),
 		ATON.UI.createButtonAR(),
+		ATON.UI.createButtonQR({ title: "Share", content: "Share with another analyst" }),
 		UI.createCollaborateButton(),
         ATON.UI.createButtonHome(),
 		UI.createViewLockButton()
@@ -128,15 +129,29 @@ UI.buildToolbar = ()=>{
 	);
 };
 
-UI.createUserButton = (loggeduser)=>{
+UI._onUser = (username)=>{
+	if (!UI._elUserBTN) return;
+
+	if (username){
+		//console.log(username);
+		UI._elUserBTN.classList.add("aton-btn-highlight");
+		UI._elUserBTN.append(ATON.UI.createElementFromHTMLString("<span class='aton-btn-text'>"+username+"</span>"));
+	}
+	else {
+		UI._elUserBTN.classList.remove("aton-btn-highlight");
+		UI._elUserBTN.removeChild(UI._elUserBTN.lastChild);
+	}
+};
+
+UI.createUserButton = ()=>{
     UI._elUserBTN = ATON.UI.createButton({
         icon: "user",
-		text: loggeduser? loggeduser : undefined,
+		classes: "px-2",
         onpress: UI.modalUser
     });
 
     ATON.checkAuth((u)=>{
-        UI._elUserBTN.classList.add("aton-btn-highlight");
+        UI._onUser(u.username);
     });
 
     return UI._elUserBTN;
@@ -229,7 +244,7 @@ UI.modalUser = ()=>{
                         ATON.REQ.logout();
                         ATON.UI.hideModal();
 
-                        if (UI._elUserBTN) UI._elUserBTN = UI.createUserButton(u.username);
+                        UI._onUser();
                     }
                 })
             );
@@ -250,7 +265,7 @@ UI.modalUser = ()=>{
                 body: ATON.UI.createLoginForm({
                     onSuccess: (r)=>{
                         ATON.UI.hideModal();
-                        if (UI._elUserBTN) UI._elUserBTN = UI.createUserButton();
+                        UI._onUser(r.username);
                     },
                     onFail: ()=>{
                         //TODO:
@@ -274,7 +289,7 @@ UI.openToolPanel = (options)=>{
         let el = document.createElement('div');
         el.classList.add("offcanvas-header");
 
-        el.innerHTML = "<h4 class='offcanvas-title'>"+options.header+"</h4><button type='button' class='btn-close' data-bs-dismiss='offcanvas' aria-label='Close'></button>";
+        el.innerHTML = "<h4 class='offcanvas-title'>"+options.header+"</h4><button type='button' class='btn-close' aria-label='Close' onclick='APP.UI.closeToolPanel()'></button>";
 
         if (options.headelement) el.prepend(options.headelement);
 
@@ -291,11 +306,12 @@ UI.openToolPanel = (options)=>{
     }
 
     UI._sidepanel.show();
+	UI.toggleBottomPlate(false);
 };
 
 UI.closeToolPanel = ()=>{
     UI._sidepanel.hide();
-    //UI._bSidePanel = false;
+    UI.toggleBottomPlate(true);
 };
 
 UI.updateRecordsList = (elRecActive)=>{
@@ -402,7 +418,10 @@ UI.panelRecords = ()=>{
 				if (APP._records[rid]) return; // Avoid duplicates
 
 				APP.loadRecord( rid, (r)=>{
-					if (!r) return;
+					if (!r){
+						// TODO: open modal with data error
+						return;
+					}
 
 					//APP.setActiveRecord(rid);
 					let elRecord = UI.createRecordItem(rid);
@@ -505,7 +524,7 @@ UI.panelAggregates = ()=>{
 				ATON.UI.createContainer({
 					items:[
 						ATON.UI.createButton({
-							icon: "trash",
+							icon: "bi-x-lg",
 							text: "Clear Aggregates",
 							classes: "btn-default",
 							onpress: ()=>{
