@@ -16,6 +16,9 @@ Processor.init = ()=>{
 
     Processor._maxFocHits = 0;
     Processor._maxLocHits = 0;
+    
+    Processor._maxFocDistance = 10.0;
+    Processor._minFocDistance = 0.5;
 
     Processor._bvBB = false;
 
@@ -103,15 +106,22 @@ Processor.computeFocalFixationsForRecord = (R)=>{
                 Processor._listFPstr += R.p.x+","+R.p.y+","+R.p.z+"\n";
 
                 Processor._volumeFocalPoints.setData(R.p, (d)=>{
+                    let dist = R.d;
+
+                    let inc = 1.0;
+                    if (Processor._maxFocDistance>0.0){
+                        inc = (1.0 - (dist/Processor._maxFocDistance)) * 3.0;
+                    }
+
                     // First hit
                     if (!d) return {
-                        hits: 1,
+                        hits: inc,
                         n: new THREE.Vector3(data.dir[0]*R.d, data.dir[1]*R.d, data.dir[2]*R.d),
                         //d: 0.0
                     };
 
                     // Non-empty voxel (Data in d)
-                    let h = d.hits + 1;
+                    let h = d.hits + inc;
                     if (h > Processor._maxFocHits) Processor._maxFocHits = h;
 
                     let nor = d.n;
@@ -236,7 +246,7 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
         K.setOnHover(()=>{
             trigger.material = APP.matVoxel;
 
-            let text = "Focal Fixation - Hits:"+ v.data.hits;
+            let text = "Focal Fixation - Rank: "+ v.data.hits.toFixed(2);
             console.log(text);
 
             ATON.UI.showSemLabel(text);
@@ -245,7 +255,7 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 
         K.setOnSelect(()=>{
             ATON.Nav.requestPOV(
-                new ATON.POV().setTarget(v.loc).setPosition(v.loc.x-nor.x, v.loc.y-nor.y, v.loc.z-nor.z)
+                new ATON.POV().setTarget(v.loc).setPosition(v.loc.x-nor.x, v.loc.y-nor.y, v.loc.z-nor.z), 0.2
             );
         });
 

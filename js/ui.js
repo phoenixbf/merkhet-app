@@ -553,7 +553,7 @@ UI.generateBestPOVsGallery = (elContainer)=>{
 
 		let elCard = ATON.UI.createCard({
 			title: "Viewpoint #"+i,
-			subtitle: "Hits: "+B.hits,
+			subtitle: "Rank: "+B.hits.toFixed(2),
 			cover: B.img,
 			size: "large",
 			useblurtint: true,
