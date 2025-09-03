@@ -255,7 +255,8 @@ Processor.computeFocalFixationsForLoadedRecords = ()=>{
 
         K.setOnSelect(()=>{
             ATON.Nav.requestPOV(
-                new ATON.POV().setTarget(v.loc).setPosition(v.loc.x-nor.x, v.loc.y-nor.y, v.loc.z-nor.z), 0.2
+                new ATON.POV().setTarget(v.loc).setPosition(v.loc.x-nor.x, v.loc.y-nor.y, v.loc.z-nor.z),
+                0.2
             );
         });
 
@@ -423,6 +424,14 @@ Processor.computePositionalFixationsForLoadedRecords = ()=>{
 
             ATON.UI.showSemLabel(text);
             ATON.SUI.setInfoNodeText(text);
+        });
+
+        K.setOnSelect(()=>{
+            let currDir = ATON.Nav._vDir;
+            ATON.Nav.requestPOV(
+                new ATON.POV().setPosition(v.loc).setTarget(v.loc.x+currDir.x, v.loc.y+currDir.y, v.loc.z+currDir.z),
+                0.2
+            );
         });
 
         K.setOnLeave(()=>{
