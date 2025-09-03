@@ -235,12 +235,29 @@ removeIdleExtremes(rows){
 }
 
 generateFromCSVdata(data){
+    // Data error msg
     this._dataerr = undefined;
 
     data = data.trim();
 
     let rows = data.split("\n");
     let num = rows.length;
+
+    // Header
+    let H = rows[0];
+    console.log("Header: "+H);
+    H = H.split(",");
+
+    const numCols = H.length;
+
+    let C_NAV   = H.indexOf("nav");
+    let C_POS   = H.indexOf("posx");
+    let C_DIR   = H.indexOf("dirx");
+    let C_FOV   = H.indexOf("fov");
+    let C_SEL   = H.indexOf("selx");
+    let C_LHPOS = H.indexOf("lh_pos");
+    let C_RHPOS = H.indexOf("rh_pos");
+
 
     // Cleaning (cropping idles)
     console.log("Rows before cropping: "+num);
@@ -279,136 +296,129 @@ generateFromCSVdata(data){
     this._matAnn = APP.matSpriteAnnotation.clone();
     this._matAnn.color = this._color;
 
-    // Header
-    let H = rows[0];
-    H = H.split(",");
-
-    let C_NAV = H.indexOf("nav");
-    let C_POS = H.indexOf("posx");
-    let C_DIR = H.indexOf("dirx");
-    let C_FOV = H.indexOf("fov");
-    let C_SEL = H.indexOf("selx");
-    let C_LHPOS = H.indexOf("lh_pos");
-    let C_RHPOS = H.indexOf("rh_pos");
-
 
     for (let m=1; m<num; m++){
         let M = rows[m];
+        M = M.trim();
 
         values = M.split(",");
+
+        if (values.length === numCols){
+            //console.log(values)
+            
+            let t = parseFloat(values[0]);
+
+            if (!isNaN(t)){
+                if (this._tRangeMin===undefined) this._tRangeMin = t;
+
+                // Nav mode
+                let nav = undefined;
+                if (C_NAV>=0) nav = values[C_NAV];
+
+                // Position
+                let px = undefined;
+                let py = undefined;
+                let pz = undefined;
+                if (C_POS>=0){
+                    px = parseFloat(values[C_POS]);
+                    py = parseFloat(values[C_POS+1]);
+                    pz = parseFloat(values[C_POS+2]);
+                }
+
+                // View direction
+                let dx = undefined;
+                let dy = undefined;
+                let dz = undefined;
+                if (C_DIR>=0){
+                    dx = parseFloat(values[C_DIR]);
+                    dy = parseFloat(values[C_DIR+1]);
+                    dz = parseFloat(values[C_DIR+2]);
+                }
+
+                let fov = undefined;
+                if (C_FOV>=0) fov = parseFloat(values[C_FOV]);           
+    /*
+                let MD = {
+                    time: t,
+                    nav: nav,
+                    pos: new THREE.Vector3(px,py,pz),
+                    dir: new THREE.Vector3(dx,dy,dz),
+                    fov: fov
+                };
+                this._marks.push(MD);
+
+                path.push(MD.pos);
+    */
+
+                // UserData (TO BE REMOVED with above approach)
+                let K = ATON.createUINode(this.rid+"-m"+m);
+
+                K.userData.i    = path.length;
+                K.userData.time = t;
+                if (nav!==undefined) K.userData.nav  = nav;
+                if (px!==undefined)  K.userData.pos  = [px,py,pz];
+                if (dx!==undefined)  K.userData.dir  = [dx,dy,dz];
+                if (fov!==undefined) K.userData.fov  = fov;
+
+                path.push(K.position);
+
+                // 3D Representation
+                let mark = new THREE.Sprite( APP.matSpriteCursor );
+                mark.renderOrder = 100;
+                //mark.raycast = APP.VOID_CAST;
+                K.add(mark);
+
+                // Panoramic mode
+                if (APP._bPano){
+                    K.position.set(
+                        dx * APP._panoScale,
+                        dy * APP._panoScale,
+                        dz * APP._panoScale
+                    );
+
+                    mark.scale.setScalar(APP.MARK_SCALE * 50.0);
+                }
+                // Std mode
+                else {
+                    mark.scale.setScalar(APP.MARK_SCALE);
+                    K.position.set(px,py,pz);
+
+                    let conesize = 5.0;
+                    let gfov = new THREE.ConeGeometry( 0.7*conesize, conesize, 10, 1, true );
+                    gfov.rotateX(Math.PI*0.5);
+                    gfov.translate(0,0,-0.5*conesize);
         
-        let t = parseFloat(values[0]);
+                    let mfov = new THREE.Mesh( gfov, this._matFOV );
+                    mfov.lookAt(-dx, -dy, -dz);
+                    mfov.raycast = APP.VOID_CAST;
 
-        if (!isNaN(t)){
-            if (this._tRangeMin===undefined) this._tRangeMin = t;
+                    K.add(mfov);
 
-            // Nav mode
-            let nav = undefined;
-            if (C_NAV>=0) nav = values[C_NAV];
 
-            // Position
-            let px = undefined;
-            let py = undefined;
-            let pz = undefined;
-            if (C_POS>=0){
-                px = parseFloat(values[C_POS]);
-                py = parseFloat(values[C_POS+1]);
-                pz = parseFloat(values[C_POS+2]);
+                    let gDir = new THREE.BufferGeometry().setFromPoints([APP._vZero, new THREE.Vector3(dx, dy, dz)]);
+                    let dLine = new THREE.Line( gDir, APP.matDirection);
+                    dLine.raycast = APP.VOID_CAST;
+                    K.add( dLine );
+                }
+
+
+                K.enablePicking();
+                K.setOnHover(()=>{
+                    K.scale.setScalar(1.5);
+                    APP._hoverMark = K;
+
+                });
+                K.setOnLeave(()=>{
+                    K.scale.setScalar(1);
+                    APP._hoverMark = undefined;
+                });
+
+                this.marks.add(K);
+
+                K.hide();
+
+                this._tRangeMax = t; 
             }
-
-            // View direction
-            let dx = undefined;
-            let dy = undefined;
-            let dz = undefined;
-            if (C_DIR>=0){
-                dx = parseFloat(values[C_DIR]);
-                dy = parseFloat(values[C_DIR+1]);
-                dz = parseFloat(values[C_DIR+2]);
-            }
-
-            let fov = undefined;
-            if (C_FOV>=0) fov = parseFloat(values[C_FOV]);           
-/*
-            let MD = {
-                time: t,
-                nav: nav,
-                pos: new THREE.Vector3(px,py,pz),
-                dir: new THREE.Vector3(dx,dy,dz),
-                fov: fov
-            };
-            this._marks.push(MD);
-
-            path.push(MD.pos);
-*/
-
-            // UserData (TO BE REMOVED with above approach)
-            let K = ATON.createUINode(this.rid+"-m"+m);
-
-            K.userData.i    = path.length;
-            K.userData.time = t;
-            if (nav!==undefined) K.userData.nav  = nav;
-            if (px!==undefined)  K.userData.pos  = [px,py,pz];
-            if (dx!==undefined)  K.userData.dir  = [dx,dy,dz];
-            if (fov!==undefined) K.userData.fov  = fov;
-
-            path.push(K.position);
-
-            // 3D Representation
-            let mark = new THREE.Sprite( APP.matSpriteCursor );
-            mark.renderOrder = 100;
-            //mark.raycast = APP.VOID_CAST;
-            K.add(mark);
-
-            // Panoramic mode
-            if (APP._bPano){
-                K.position.set(
-                    dx * APP._panoScale,
-                    dy * APP._panoScale,
-                    dz * APP._panoScale
-                );
-
-                mark.scale.setScalar(APP.MARK_SCALE * 50.0);
-            }
-            // Std mode
-            else {
-                mark.scale.setScalar(APP.MARK_SCALE);
-                K.position.set(px,py,pz);
-
-                let conesize = 5.0;
-                let gfov = new THREE.ConeGeometry( 0.7*conesize, conesize, 10, 1, true );
-                gfov.rotateX(Math.PI*0.5);
-                gfov.translate(0,0,-0.5*conesize);
-    
-                let mfov = new THREE.Mesh( gfov, this._matFOV );
-                mfov.lookAt(-dx, -dy, -dz);
-                mfov.raycast = APP.VOID_CAST;
-
-                K.add(mfov);
-
-
-                let gDir = new THREE.BufferGeometry().setFromPoints([APP._vZero, new THREE.Vector3(dx, dy, dz)]);
-                let dLine = new THREE.Line( gDir, APP.matDirection);
-                dLine.raycast = APP.VOID_CAST;
-                K.add( dLine );
-            }
-
-
-            K.enablePicking();
-            K.setOnHover(()=>{
-                K.scale.setScalar(1.5);
-                APP._hoverMark = K;
-
-            });
-            K.setOnLeave(()=>{
-                K.scale.setScalar(1);
-                APP._hoverMark = undefined;
-            });
-
-            this.marks.add(K);
-
-            K.hide();
-
-            this._tRangeMax = t; 
         }
     }
 
