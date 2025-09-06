@@ -82,14 +82,16 @@ Processor.computeFocalFixationsForRecord = (R)=>{
 
             Processor._volumeFocalPoints.setData(fp, (d)=>{
                 if (!d) return {
-                    hits: 1
+                    hits: 1,
+                    n: fp
                 };
 
                 let h = d.hits + 1;
                 if (h > Processor._maxFocHits) Processor._maxFocHits = h;
 
                 return {
-                    hits: h
+                    hits: h,
+                    n: fp
                 };
             });
 
