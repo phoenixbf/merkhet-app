@@ -733,6 +733,7 @@ UI.setupSpatial = ()=>{
 	let buttons = [];
 
 	let btnTalk = new ATON.SUI.Button("sui_talk");
+	let btnExit = new ATON.SUI.Button("sui_exit");
 
     btnTalk.setIcon(ATON.UI.PATH_RES_ICONS+"talk.png")
         //.setSwitchColor(ATON.MatHub.colors.orange)
@@ -747,7 +748,15 @@ UI.setupSpatial = ()=>{
             }
         };
 
+	btnExit.setIcon(ATON.UI.PATH_RES_ICONS+"cancel.png")
+		.setBaseColor(ATON.MatHub.colors.red)
+        //.setSwitchColor(ATON.MatHub.colors.orange)
+        .onSelect = ()=>{
+			history.back();
+        };
+
 	buttons.push( btnTalk );
+	buttons.push( btnExit );
 
     UI.sToolbar = ATON.SUI.createToolbar( buttons );
 
